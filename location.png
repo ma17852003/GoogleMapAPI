@@ -1,0 +1,3 @@
+The Google Maps Platform server rejected your request. Unable to authenticate the request. Provided 'signature' is not valid for the provided API key, or the provided 'key' is not valid.
+The signature was checked against the URL: /maps/api/staticmap?center=40.714%2C%20-73.998&zoom=12&size=400x400&key=AIzaSyDOO7Fb9wGFEPH99kWg00K4Nr-mBNtWB20&signature=RLpb4x9y6-Fpg_Hu6Z0XtsE_Bfs=center%20=Dehradun&zoom%20=10&size%20=%20400x400&key%20=AIzaSyDOO7Fb9wGFEPH99kWg00K4Nr-mBNtWB20sensor%20=%20false
+If this does not match the URL you requested, please ensure that your request is URL encoded correctly. Learn more: https://developers.google.com/maps/documentation/business/webservices/auth

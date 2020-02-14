@@ -1,0 +1,152 @@
+[
+    {
+        "time2intersection": -1.0,
+        "object": "car",
+        "number": 0,
+        "long": 121.002069,
+        "lat": 24.78653,
+        "bbox": [
+            308,
+            140,
+            411,
+            206
+        ],
+        "device": "RSU0",
+        "speed": 0.0
+    },
+    {
+        "time2intersection": -1.0,
+        "object": "car",
+        "number": 1,
+        "long": 121.002093,
+        "lat": 24.786592,
+        "bbox": [
+            170,
+            191,
+            308,
+            277
+        ],
+        "device": "RSU0",
+        "speed": 0.0
+    },
+    {
+        "time2intersection": -1.0,
+        "object": "car",
+        "number": 2,
+        "long": 121.001977,
+        "lat": 24.786321,
+        "bbox": [
+            471,
+            92,
+            532,
+            130
+        ],
+        "device": "RSU0",
+        "speed": 0.0
+    },
+    {
+        "time2intersection": -1.0,
+        "object": "people",
+        "number": 0,
+        "long": 121.001785,
+        "lat": 24.787094,
+        "bbox": [
+            116,
+            49,
+            133,
+            81
+        ],
+        "device": "RSU1",
+        "speed": 0.0
+    },
+    {
+        "time2intersection": -1.0,
+        "object": "car",
+        "number": 0,
+        "long": 121.00211,
+        "lat": 24.786939,
+        "bbox": [
+            449,
+            70,
+            610,
+            167
+        ],
+        "device": "RSU1",
+        "speed": 0.0
+    },
+    {
+        "time2intersection": -1.0,
+        "object": "car",
+        "number": 1,
+        "long": 121.002069,
+        "lat": 24.78696,
+        "bbox": [
+            234,
+            59,
+            338,
+            116
+        ],
+        "device": "RSU1",
+        "speed": 0.0
+    },
+    {
+        "time2intersection": -1.0,
+        "object": "car",
+        "number": 2,
+        "long": 121.002179,
+        "lat": 24.787056,
+        "bbox": [
+            559,
+            63,
+            638,
+            100
+        ],
+        "device": "RSU1",
+        "speed": 0.0
+    },
+    {
+        "time2intersection": -1.0,
+        "object": "car",
+        "number": 3,
+        "long": 121.00211,
+        "lat": 24.786939,
+        "bbox": [
+            378,
+            78,
+            509,
+            150
+        ],
+        "device": "RSU1",
+        "speed": 0.0
+    },
+    {
+        "time2intersection": -1.0,
+        "object": "car",
+        "number": 4,
+        "long": 121.00211,
+        "lat": 24.786939,
+        "bbox": [
+            302,
+            61,
+            414,
+            120
+        ],
+        "device": "RSU1",
+        "speed": 0.0
+    },
+    {
+        "time2intersection": -1.0,
+        "object": "car",
+        "number": 5,
+        "long": 121.002023,
+        "lat": 24.786977,
+        "bbox": [
+            161,
+            59,
+            256,
+            108
+        ],
+        "device": "RSU1",
+        "speed": 0.0
+    }
+]

@@ -7,7 +7,8 @@
 ```flask run --host=0.0.0.0```
 
 
-# MQTT server 
+# MQTT Connection
+### run MQTT server
 ```node mqtt.js```
 
 ### Send message with topic "NCTU-ROOM"

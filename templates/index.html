@@ -5,7 +5,7 @@
   <title>Simple Map</title>
   <meta name="viewport" content="initial-scale=1.0">
   <meta charset="utf-8">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self' data:;">
+  <!-- <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self' data:;"> -->
   <style>
     /* Always set the map height explicitly to define the size of the div
        * element that contains the map. */
@@ -15,7 +15,7 @@
 
     #map div {
       transition-property: all;
-      transition-duration: 1000ms;
+      transition-duration: 300ms;
       transition-timing-function: ease-out;
     }
 
@@ -37,9 +37,9 @@
 
   <script language="javascript" type="text/javascript">
     // var wsUri ="ws://echo.websocket.org/"; 
-    // var data1 = "ws://140.113.217.242:8000";
+    var data1 = "ws://140.113.217.242:8000";
     //  var data2 = "ws://140.113.217.242:8001";
-    var data1 = "ws://140.113.217.214:9292";
+    // var data1 = "ws://140.113.217.214:9292";
     var websocket
     var websocket1
     var next_msg = []
@@ -268,9 +268,10 @@
       map = new google.maps.Map(document.getElementById('map'), {
         // zoom: 21,
         zoom: 21,
-        // center: {lat: 12.646011458548333, lng: 11.901676997427126}
-        center: { lat: 24.7870344, lng: 121.0003 }
-        // center: { lat: 24.786704, lng: 121.002128 }
+        // zoom: 20,
+        
+        // center: { lat: 24.7870344, lng: 121.0003 }
+        center: { lat: 24.786704, lng: 121.002128 }
       });
 
       setMarkers(map);

@@ -37,10 +37,10 @@
 
   <script language="javascript" type="text/javascript">
     // var wsUri ="ws://echo.websocket.org/"; 
-    //var data1 = "ws://140.113.217.242:8000";
-    //  var data2 = "ws://140.113.217.242:8001";
-    // var data1 = "ws://140.113.217.214:9292";
+    // var data1 = "ws://140.113.217.242:8000";
+    // var data2 = "ws://140.113.217.242:8001";
     var data1 = "ws://140.113.217.214:9292"
+
     var websocket
     var websocket1
     var next_msg = []
@@ -51,8 +51,6 @@
     var poly
     var drawPolyLine
     var objectPath = []
-    // var current_markers = []
-    // var next_markers = []
     var contentString
     var lines = []
     var linesCache = []
@@ -88,7 +86,7 @@
 
     function newMarker(obj) {
       let marker = new google.maps.Marker({
-        position: { lat: obj['lat'], lng: obj['long'] },
+        position: { lat: obj['lat'], lng: obj['lon'] },
         map: map,
         icon: icons[obj["object"]]["icon"],
         title: 'object',
@@ -144,7 +142,7 @@
         next_msg = JSON.parse(evt.data);
 
 
-        // console.log(evt.data)
+        console.log(evt.data)
         // remove undefined point
         var filtermsg = next_msg.filter(function (item, index, array) {
           return item["object"] != undefined;
@@ -178,7 +176,7 @@
 
             if (obj["speed"] != 0) {
               // update marker position
-              obj.marker.setPosition({ lat: obj['lat'], lng: obj['long'] })
+              obj.marker.setPosition({ lat: obj['lat'], lng: obj['lon'] })
 
               let speed = Number.parseFloat(obj["speed"]).toFixed(2);
               let contentString = `<p>${obj["object"]},${obj["device"]},${obj["number"]},</br>${speed}</p>`
@@ -219,12 +217,12 @@
               // speed == 0
 
               let diff_lat = Math.abs(obj["lat"] - current_msg[search_result]["lat"])
-              let diff_long = Math.abs(obj["long"] - current_msg[search_result]["long"])
+              let diff_long = Math.abs(obj["lon"] - current_msg[search_result]["lon"])
               console.log(diff_lat)
               console.log(diff_long)
               console.log('-----')
               if (diff_lat > jeter_threshold || diff_long > jeter_threshold){
-                obj.marker.setPosition({ lat: obj['lat'], lng: obj['long'] })
+                obj.marker.setPosition({ lat: obj['lat'], lng: obj['lon'] })
               }
               obj.marker.infowindow.close();
               

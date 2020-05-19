@@ -6,7 +6,7 @@
   <meta name="viewport" content="initial-scale=1.0">
   <meta charset="utf-8">
   <!-- import jquery library -->
-  <!--<script src="https://code.jquery.com/jquery-3.1.0.min.js"></script>-->
+  <script src="https://code.jquery.com/jquery-3.1.0.min.js"></script>
 
   <!-- import paho MQTT library -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js" type="text/javascript"></script>
@@ -35,10 +35,9 @@
 </head>
 
 <body>
-  <!--<div id="map"></div>
+  <div id="map"></div>
   <div id="marker1"></div>
-  <div id="marker"></div>-->
-  <h1>mqtt-demo</h1>
+  <div id="marker"></div>
   <div class="wrapper">
          <h1>mqtt-demo</h1>
          <form id="connection-information-form">
@@ -86,11 +85,11 @@
 
     // var mqtt = require('mqtt');
     // Generate a new random MQTT client id on each page load
-    var MQTT_CLIENT_ID = "iot_web_" + Math.floor((1 + Math.random()) * 0x10000000000).toString(16);
+    //var MQTT_CLIENT_ID = "iot_web_" + Math.floor((1 + Math.random()) * 0x10000000000).toString(16);
     var opt = {
       address: 'mqtt://127.0.0.1',
       port: 1883,
-      clientId: MQTT_CLIENT_ID
+      clientId: "test"
     }
     host = "test.mosquitto.org";
     port = "8080";
@@ -99,7 +98,7 @@
     // Called after form input is processed
     function startConnect() {
       // Generate a random client ID
-      clientID = "clientID-" + parseInt(Math.random() * 100);
+      clientID = "clientID-" + Math.floor((1 + Math.random()) * 0x10000000000).toString(16);
 
       // Fetch the hostname/IP address and port number from the form
       host = document.getElementById("host").value;
@@ -143,29 +142,21 @@
     function onConnectionLost(responseObject) {
       console.log("onConnectionLost: Connection Lost");
       if (responseObject.errorCode !== 0) {
-        console.log("onConnectionLost: " + responseObject.errorMessage);
+        // console.log("onConnectionLost: " + responseObject.errorMessage);
       }
     }
 
     // Called when a message arrives
     function onMessageArrived(message) {
-      console.log("onMessageArrived: " + message.payloadString);
+      //console.log("onMessageArrived: " + message.payloadString);
       document.getElementById("messages").innerHTML += '<span>Topic: ' + message.destinationName + '  | ' + message
         .payloadString + '</span><br/>';
-      updateScroll(); // Scroll to bottom of window
     }
 
     // Called when the disconnection button is pressed
     function startDisconnect() {
       client.disconnect();
       document.getElementById("messages").innerHTML += '<span>Disconnected</span><br/>';
-      updateScroll(); // Scroll to bottom of window
-    }
-
-    // Updates #messages div to auto-scroll
-    function updateScroll() {
-      var element = document.getElementById("messages");
-      element.scrollTop = element.scrollHeight;
     }
 
     function mqttConnect() {
@@ -465,7 +456,8 @@
       console.log('test mqtt')
 
       // testWebSocket()
-      mqttConnect();
+      //mqttConnect();
+      startConnect();
     }
   </script>
 

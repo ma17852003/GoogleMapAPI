@@ -5,6 +5,11 @@
   <title>Simple Map</title>
   <meta name="viewport" content="initial-scale=1.0">
   <meta charset="utf-8">
+  <!-- import jquery library -->
+  <!--<script src="https://code.jquery.com/jquery-3.1.0.min.js"></script>-->
+
+  <!-- import paho MQTT library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js" type="text/javascript"></script>
   <!-- <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self' data:;"> -->
   <style>
     /* Always set the map height explicitly to define the size of the div
@@ -30,16 +35,40 @@
 </head>
 
 <body>
-  <div id="map"></div>
+  <!--<div id="map"></div>
   <div id="marker1"></div>
-  <div id="marker"></div>
+  <div id="marker"></div>-->
+  <h1>mqtt-demo</h1>
+  <div class="wrapper">
+         <h1>mqtt-demo</h1>
+         <form id="connection-information-form">
+            <b>Hostname or IP Address:</b>
+            <input id="host" type="text" name="host" value="test.mosquitto.org"><br>
+            <b>Port:</b>
+            <input id="port" type="text" name="port" value="8080"><br>
+            <b>Topic:</b>
+            <input id="topic" type="text" name="topic" value="#"><br><br>
+            <input type="button" onclick="startConnect()" value="Connect">
+            <input type="button" onclick="startDisconnect()" value="Disconnect">
+         </form>
+         <div id="messages"></div>
+      </div>
+
+
+  <!-- this is the secton wrapping our new button -->
+  <div>
+    <button onClick="mqttConnect()">Connect</button>
+  </div>
+  <!-- this is where new text will appear
+  <div id="updateMe"></div>-->
 
 
   <script language="javascript" type="text/javascript">
-    // var wsUri ="ws://echo.websocket.org/"; 
-    // var data1 = "ws://140.113.217.242:8000";
+    // var wsUri ="ws://echo.websocket.org/";
+    var data1 = "ws://140.113.217.242:8000";
     // var data2 = "ws://140.113.217.242:8001";
-    var data1 = "ws://140.113.217.214:9292"
+    // var data1 = "ws://140.113.217.214:9292"
+    // console.log('data1', data1);
 
     var websocket
     var websocket1
@@ -54,6 +83,138 @@
     var contentString
     var lines = []
     var linesCache = []
+
+    // var mqtt = require('mqtt');
+    // Generate a new random MQTT client id on each page load
+    var MQTT_CLIENT_ID = "iot_web_" + Math.floor((1 + Math.random()) * 0x10000000000).toString(16);
+    var opt = {
+      address: 'mqtt://127.0.0.1',
+      port: 1883,
+      clientId: MQTT_CLIENT_ID
+    }
+    host = "test.mosquitto.org";
+    port = "8080";
+
+    var MQTT_CLIENT = new Paho.MQTT.Client("test.mosquitto.org", 8080, MQTT_CLIENT_ID);
+    // Called after form input is processed
+    function startConnect() {
+      // Generate a random client ID
+      clientID = "clientID-" + parseInt(Math.random() * 100);
+
+      // Fetch the hostname/IP address and port number from the form
+      host = document.getElementById("host").value;
+      port = document.getElementById("port").value;
+      // host = "127.0.0.1";
+      // port = "1883"
+
+      // Print output for the user in the messages div
+      document.getElementById("messages").innerHTML += '<span>Connecting to: ' + host + ' on port: ' + port +
+        '</span><br/>';
+      document.getElementById("messages").innerHTML += '<span>Using the following client value: ' + clientID +
+        '</span><br/>';
+
+      // Initialize new Paho client connection
+      client = new Paho.MQTT.Client(host, Number(port), clientID);
+
+      // Set callback handlers
+      client.onConnectionLost = onConnectionLost;
+      client.onMessageArrived = onMessageArrived;
+
+      // Connect the client, if successful, call onConnect function
+      client.connect({
+        onSuccess: onConnect,
+      });
+    }
+
+    // Called when the client connects
+    function onConnect() {
+      // Fetch the MQTT topic from the form
+      topic = document.getElementById("topic").value;
+      // topic = "NCTU"
+
+      // Print output for the user in the messages div
+      document.getElementById("messages").innerHTML += '<span>Subscribing to: ' + topic + '</span><br/>';
+
+      // Subscribe to the requested topic
+      client.subscribe(topic);
+    }
+
+    // Called when the client loses its connection
+    function onConnectionLost(responseObject) {
+      console.log("onConnectionLost: Connection Lost");
+      if (responseObject.errorCode !== 0) {
+        console.log("onConnectionLost: " + responseObject.errorMessage);
+      }
+    }
+
+    // Called when a message arrives
+    function onMessageArrived(message) {
+      console.log("onMessageArrived: " + message.payloadString);
+      document.getElementById("messages").innerHTML += '<span>Topic: ' + message.destinationName + '  | ' + message
+        .payloadString + '</span><br/>';
+      updateScroll(); // Scroll to bottom of window
+    }
+
+    // Called when the disconnection button is pressed
+    function startDisconnect() {
+      client.disconnect();
+      document.getElementById("messages").innerHTML += '<span>Disconnected</span><br/>';
+      updateScroll(); // Scroll to bottom of window
+    }
+
+    // Updates #messages div to auto-scroll
+    function updateScroll() {
+      var element = document.getElementById("messages");
+      element.scrollTop = element.scrollHeight;
+    }
+
+    function mqttConnect() {
+      // Create a MQTT client instance
+      // var MQTT_CLIENT = new Paho.MQTT.Client("test.mosquitto.org", 8080, "/ws", 'test');
+      var MQTT_CLIENT = new Paho.MQTT.Client(host, Number(port), MQTT_CLIENT_ID);
+      document.getElementById("messages").innerHTML += '<span>Connecting to: ' + host + ' on port: ' + port +
+        '</span><br/>';
+      // console.log('MQTT_CLIENT', MQTT_CLIENT)
+
+      // Tell the client instance to connect to the MQTT broker
+      MQTT_CLIENT.connect({
+        onSuccess: myClientConnected
+      });
+      // Tell MQTT_CLIENT to call myMessageArrived(message) each time a new message arrives
+      MQTT_CLIENT.onMessageArrived = myMessageArrived;
+
+    }
+    // This is the function which handles subscribing to topics after a connection is made
+    function myClientConnected() {
+      console.log('success')
+      MQTT_CLIENT.subscribe("#");
+    }
+
+    // This is the function which handles received messages
+    function myMessageArrived(message) {
+      console.log("onMessageArrived: " + message.payloadString);
+      document.getElementById("messages").innerHTML += '<span>Topic: ' + message.destinationName + '  | ' + message
+        .payloadString + '</span><br/>';
+      // Get the payload
+      var messageBody = message.payloadString;
+
+      // Create a new HTML element wrapping the message payload
+      var messageHTML = $("<p>" + messageBody + "</p>");
+
+      // Insert it inside the ```id=updateMe``` element above everything else that is there
+      $("#messages").prepend(messageHTML);
+    };
+    // This is the function which handles button clicks
+    function myButtonWasClicked() {
+      // create a new MQTT message with a specific payload
+      var mqttMessage = new Paho.MQTT.Message("Hello from website");
+
+      // Set the topic it should be published to
+      mqttMessage.destinationName = "#";
+
+      // Publish the message
+      MQTT_CLIENT.send(mqttMessage);
+    }
 
 
     var strokeColorSet = {
@@ -86,7 +247,10 @@
 
     function newMarker(obj) {
       let marker = new google.maps.Marker({
-        position: { lat: obj['lat'], lng: obj['lon'] },
+        position: {
+          lat: obj['lat'],
+          lng: obj['lon']
+        },
         map: map,
         icon: icons[obj["object"]]["icon"],
         title: 'object',
@@ -100,24 +264,24 @@
         content: contentString
       });
 
-      // Set info windows 
+      // Set info windows
       if (obj["speed"] != 0) {
         marker.infowindow.open(map, marker);
-      }
-      else {
+      } else {
         marker.infowindow.close();
       }
       obj.marker = marker
       //===== end of new marker & windows
     }
+
     function testWebSocket() {
       /**
-      * 创建一个WebSocket对象
-      * url注意事项上面已经说过在此在提醒一下:
-      * 参数是需要连接的服务器端的地址，同http协议使用http://开头一样
-      * WebSocket协议的URL使用ws://开头
-      * 另外安全的WebSocket协议使用wss://开头。
-      */
+       * 创建一个WebSocket对象
+       * url注意事项上面已经说过在此在提醒一下:
+       * 参数是需要连接的服务器端的地址，同http协议使用http://开头一样
+       * WebSocket协议的URL使用ws://开头
+       * 另外安全的WebSocket协议使用wss://开头。
+       */
       // var data2 = JSON.parse(data1)
 
       websocket = new WebSocket(data1);
@@ -164,19 +328,22 @@
             // add new google map object into next msg array
             //======   new marker & info windows
             newMarker(obj)
-          }
-          else {
+          } else {
             // have the same element in current msg
             // pop google map markers from current array
             // Set  location if distance > threshod
             obj.marker = current_msg[search_result].marker
             let search_line_result = lines.findIndex((line) => {
-                return ((obj["device"] == line.objectArray[0]["device"]) && (obj["number"] == line.objectArray[0]["number"]))
-              });
+              return ((obj["device"] == line.objectArray[0]["device"]) && (obj["number"] == line.objectArray[
+                0]["number"]))
+            });
 
             if (obj["speed"] != 0) {
               // update marker position
-              obj.marker.setPosition({ lat: obj['lat'], lng: obj['lon'] })
+              obj.marker.setPosition({
+                lat: obj['lat'],
+                lng: obj['lon']
+              })
 
               let speed = Number.parseFloat(obj["speed"]).toFixed(2);
               let contentString = `<p>${obj["object"]},${obj["device"]},${obj["number"]},</br>${speed}</p>`
@@ -212,8 +379,7 @@
                 lines.push(drawPolyLine);
               }
               // ===== End of Add marker in Line =====
-            }
-            else {
+            } else {
               // speed == 0
 
               let diff_lat = Math.abs(obj["lat"] - current_msg[search_result]["lat"])
@@ -221,11 +387,14 @@
               console.log(diff_lat)
               console.log(diff_long)
               console.log('-----')
-              if (diff_lat > jeter_threshold || diff_long > jeter_threshold){
-                obj.marker.setPosition({ lat: obj['lat'], lng: obj['lon'] })
+              if (diff_lat > jeter_threshold || diff_long > jeter_threshold) {
+                obj.marker.setPosition({
+                  lat: obj['lat'],
+                  lng: obj['lon']
+                })
               }
               obj.marker.infowindow.close();
-              
+
 
               if (search_line_result != -1) {
                 lines[search_line_result].setMap(null)
@@ -254,23 +423,18 @@
       }
     }
 
-
-
-
-
-
-
-
-
     function initMap() {
 
       map = new google.maps.Map(document.getElementById('map'), {
         // zoom: 21,
         zoom: 21,
         // zoom: 20,
-        
+
         // center: { lat: 24.7870344, lng: 121.0003 }
-        center: { lat: 24.786704, lng: 121.002128 }
+        center: {
+          lat: 24.786704,
+          lng: 121.002128
+        }
       });
 
       setMarkers(map);
@@ -283,7 +447,8 @@
         let search_delete_line = lines.findIndex(line => {
           // console.log(e["device"])
           // console.log(line.objectArray[line.objectArray.length-1]["device"])
-          return ((e["device"] == line.objectArray[line.objectArray.length - 1]["device"]) && (e["number"] == line.objectArray[line.objectArray.length - 1]["number"]))
+          return ((e["device"] == line.objectArray[line.objectArray.length - 1]["device"]) && (e["number"] ==
+            line.objectArray[line.objectArray.length - 1]["number"]))
         })
         if (search_delete_line != -1) {
           lines[search_delete_line].setMap(null);
@@ -296,19 +461,13 @@
 
     function setMarkers(map) {
 
-      console.log('test socket')
+      // console.log('test socket')
+      console.log('test mqtt')
 
-      testWebSocket()
-
+      // testWebSocket()
+      mqttConnect();
     }
-
-
-
-
   </script>
-
-
-
 
   <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCHO3eslXasBmWiNw335Al3W50vIGyIClU&callback=initMap"
     async defer></script>

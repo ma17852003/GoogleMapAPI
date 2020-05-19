@@ -1,5 +1,6 @@
 var mqtt = require('mqtt');
 var opt = {
+    address: 'mqtt://127.0.0.1',
     port:1883,
     clientId: 'nodejs'
 }
@@ -11,7 +12,7 @@ var server = app.listen(5438);
 var sio = io.listen(server);
 
 //Create mqtt connection
-var client = mqtt.connect('mqtt://127.0.0.1', opt);
+var client = mqtt.connect(opt);
 
 client.on('connect', function() {
     console.log('MQTT Server Connected');

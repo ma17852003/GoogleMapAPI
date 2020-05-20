@@ -10,6 +10,7 @@
 
   <!-- import paho MQTT library -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js" type="text/javascript"></script>
+  <!--<script src="https://cdn.bootcdn.net/ajax/libs/paho-mqtt/1.1.0/paho-mqtt.js" type="text/javascript"></script>-->
   <!-- <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self' data:;"> -->
   <style>
     /* Always set the map height explicitly to define the size of the div
@@ -54,19 +55,11 @@
       </div>
 
 
-  <!-- this is the secton wrapping our new button -->
-  <div>
-    <button onClick="mqttConnect()">Connect</button>
-  </div>
-  <!-- this is where new text will appear
-  <div id="updateMe"></div>-->
-
-
   <script language="javascript" type="text/javascript">
     // var wsUri ="ws://echo.websocket.org/";
-    var data1 = "ws://140.113.217.242:8000";
+    // var data1 = "ws://140.113.217.242:8000";
     // var data2 = "ws://140.113.217.242:8001";
-    // var data1 = "ws://140.113.217.214:9292"
+    var data1 = "ws://140.113.217.214:9292"
     // console.log('data1', data1);
 
     var websocket
@@ -85,14 +78,14 @@
 
     // var mqtt = require('mqtt');
     // Generate a new random MQTT client id on each page load
-    //var MQTT_CLIENT_ID = "iot_web_" + Math.floor((1 + Math.random()) * 0x10000000000).toString(16);
+    var MQTT_CLIENT_ID = "iot_web_" + Math.floor((1 + Math.random()) * 0x10000000000).toString(16);
     var opt = {
-      address: 'mqtt://127.0.0.1',
+      host: 'mqtt://127.0.0.1',
       port: 1883,
       clientId: "test"
     }
-    host = "test.mosquitto.org";
-    port = "8080";
+    //host = "test.mosquitto.org";
+    //port = "8080";
 
     var MQTT_CLIENT = new Paho.MQTT.Client("test.mosquitto.org", 8080, MQTT_CLIENT_ID);
     // Called after form input is processed
@@ -113,7 +106,10 @@
         '</span><br/>';
 
       // Initialize new Paho client connection
+      // client = new Paho.MQTT.Client("140.113.217.242", 8000, clientID);
       client = new Paho.MQTT.Client(host, Number(port), clientID);
+      // client = new Paho.Client(host, Number(port), clientID);
+      // client = new Paho.MQTT.Client('127.0.0.1', 1883, "test");
 
       // Set callback handlers
       client.onConnectionLost = onConnectionLost;
@@ -135,7 +131,11 @@
       document.getElementById("messages").innerHTML += '<span>Subscribing to: ' + topic + '</span><br/>';
 
       // Subscribe to the requested topic
+      console.log("onConnect");
       client.subscribe(topic);
+      //message = new Paho.MQTT.Message("Hello");
+      //message.destinationName = "World";
+      //client.send(message);
     }
 
     // Called when the client loses its connection
@@ -148,7 +148,7 @@
 
     // Called when a message arrives
     function onMessageArrived(message) {
-      //console.log("onMessageArrived: " + message.payloadString);
+      console.log("onMessageArrived: " + message.payloadString);
       document.getElementById("messages").innerHTML += '<span>Topic: ' + message.destinationName + '  | ' + message
         .payloadString + '</span><br/>';
     }
@@ -162,7 +162,7 @@
     function mqttConnect() {
       // Create a MQTT client instance
       // var MQTT_CLIENT = new Paho.MQTT.Client("test.mosquitto.org", 8080, "/ws", 'test');
-      var MQTT_CLIENT = new Paho.MQTT.Client(host, Number(port), MQTT_CLIENT_ID);
+      var MQTT_CLIENT = new Paho.MQTT.Client("test.mosquitto.org", 8080, MQTT_CLIENT_ID);
       document.getElementById("messages").innerHTML += '<span>Connecting to: ' + host + ' on port: ' + port +
         '</span><br/>';
       // console.log('MQTT_CLIENT', MQTT_CLIENT)
@@ -188,6 +188,10 @@
         .payloadString + '</span><br/>';
       // Get the payload
       var messageBody = message.payloadString;
+      console.log('messageBody', messageBody);
+            //console.log("onMessageArrived: " + message.payloadString);
+      document.getElementById("messages").innerHTML += '<span>Topic: ' + message.destinationName + '  | ' + message
+        .payloadString + '</span><br/>';
 
       // Create a new HTML element wrapping the message payload
       var messageHTML = $("<p>" + messageBody + "</p>");
@@ -195,17 +199,6 @@
       // Insert it inside the ```id=updateMe``` element above everything else that is there
       $("#messages").prepend(messageHTML);
     };
-    // This is the function which handles button clicks
-    function myButtonWasClicked() {
-      // create a new MQTT message with a specific payload
-      var mqttMessage = new Paho.MQTT.Message("Hello from website");
-
-      // Set the topic it should be published to
-      mqttMessage.destinationName = "#";
-
-      // Publish the message
-      MQTT_CLIENT.send(mqttMessage);
-    }
 
 
     var strokeColorSet = {
@@ -456,7 +449,7 @@
       console.log('test mqtt')
 
       // testWebSocket()
-      //mqttConnect();
+      // mqttConnect();
       startConnect();
     }
   </script>

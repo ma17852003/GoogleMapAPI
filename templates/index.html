@@ -233,7 +233,7 @@
       let marker = new google.maps.Marker({
         position: {
           lat: obj['lat'],
-          lng: obj['lon']
+          lng: obj['long']
         },
         map: map,
         icon: icons[obj["object"]]["icon"],
@@ -326,7 +326,7 @@
               // update marker position
               obj.marker.setPosition({
                 lat: obj['lat'],
-                lng: obj['lon']
+                lng: obj['long']
               })
 
               let speed = Number.parseFloat(obj["speed"]).toFixed(2);
@@ -367,14 +367,14 @@
               // speed == 0
 
               let diff_lat = Math.abs(obj["lat"] - current_msg[search_result]["lat"])
-              let diff_long = Math.abs(obj["lon"] - current_msg[search_result]["lon"])
+              let diff_long = Math.abs(obj["long"] - current_msg[search_result]["long"])
               console.log(diff_lat)
               console.log(diff_long)
               console.log('-----')
               if (diff_lat > jeter_threshold || diff_long > jeter_threshold) {
                 obj.marker.setPosition({
                   lat: obj['lat'],
-                  lng: obj['lon']
+                  lng: obj['long']
                 })
               }
               obj.marker.infowindow.close();
@@ -448,9 +448,9 @@
       // console.log('test socket')
       console.log('test mqtt')
 
-      // testWebSocket()
+      testWebSocket()
       // mqttConnect();
-      startConnect();
+      // startConnect();
     }
   </script>
 

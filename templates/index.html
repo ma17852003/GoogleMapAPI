@@ -5,34 +5,15 @@
   <title>Simple Map</title>
   <meta name="viewport" content="initial-scale=1.0">
   <meta charset="utf-8">
+  <!-- Latest compiled and minified Bootstrap CSS -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
   <!-- import jquery library -->
   <script src="https://code.jquery.com/jquery-3.1.0.min.js"></script>
 
   <!-- import paho MQTT library -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js" type="text/javascript"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.2/mqttws31.min.js" type="text/javascript"></script>
   <!--<script src="https://cdn.bootcdn.net/ajax/libs/paho-mqtt/1.1.0/paho-mqtt.js" type="text/javascript"></script>-->
   <!-- <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self' data:;"> -->
-  <style>
-    /* Always set the map height explicitly to define the size of the div
-       * element that contains the map. */
-    #map {
-      height: 100%;
-    }
-
-    #map div {
-      transition-property: all;
-      transition-duration: 300ms;
-      transition-timing-function: ease-out;
-    }
-
-    /* Optional: Makes the sample page fill the window. */
-    html,
-    body {
-      height: 100%;
-      margin: 0;
-      padding: 0;
-    }
-  </style>
 </head>
 
 <body>
@@ -52,7 +33,7 @@
             <input type="button" onclick="startDisconnect()" value="Disconnect">
          </form>
          <div id="messages"></div>
-      </div>
+  </div>
 
 
   <script language="javascript" type="text/javascript">
@@ -142,29 +123,41 @@
     function onConnectionLost(responseObject) {
       console.log("onConnectionLost: Connection Lost");
       if (responseObject.errorCode !== 0) {
-        // console.log("onConnectionLost: " + responseObject.errorMessage);
+        console.log("onConnectionLost: " + responseObject.errorMessage);
       }
     }
 
     // Called when a message arrives
     function onMessageArrived(message) {
       console.log("onMessageArrived: " + message.payloadString);
-      document.getElementById("messages").innerHTML += '<span>Topic: ' + message.destinationName + '  | ' + message
-        .payloadString + '</span><br/>';
+      document.getElementById("messages").innerHTML += '<span>Topic: ' + message.destinationName + '  | ' + message.payloadString + '</span><br/>';
+      updateScroll(); // Scroll to bottom of window
     }
 
     // Called when the disconnection button is pressed
     function startDisconnect() {
       client.disconnect();
       document.getElementById("messages").innerHTML += '<span>Disconnected</span><br/>';
+      updateScroll(); // Scroll to bottom of window
+    }
+    // Updates #messages div to auto-scroll
+    function updateScroll() {
+        var element = document.getElementById("messages");
+        element.scrollTop = element.scrollHeight;
     }
 
     function mqttConnect() {
+      var hostname = "broker.hivemq.com"
+      var port = 8000
+      // var hostname = "140.113.217.214"
+      // var port = 9292
+      /*var hostname = "140.113.217.242"
+      var port = 9292*/
+
       // Create a MQTT client instance
-      // var MQTT_CLIENT = new Paho.MQTT.Client("test.mosquitto.org", 8080, "/ws", 'test');
-      var MQTT_CLIENT = new Paho.MQTT.Client("test.mosquitto.org", 8080, MQTT_CLIENT_ID);
-      document.getElementById("messages").innerHTML += '<span>Connecting to: ' + host + ' on port: ' + port +
-        '</span><br/>';
+      // var MQTT_CLIENT = new Paho.MQTT.Client("test.mosquitto.org", 8080, "/ws", MQTT_CLIENT_ID);
+      var MQTT_CLIENT = new Paho.MQTT.Client(hostname, port, MQTT_CLIENT_ID);
+      console.log("INFO", "Connecting to Server: [Host: ", hostname, ", Port: ", port, ", ID: ", MQTT_CLIENT_ID, "]");
       // console.log('MQTT_CLIENT', MQTT_CLIENT)
 
       // Tell the client instance to connect to the MQTT broker
@@ -177,21 +170,18 @@
     }
     // This is the function which handles subscribing to topics after a connection is made
     function myClientConnected() {
-      console.log('success')
-      MQTT_CLIENT.subscribe("#");
+      console.log('Success Connect XXXXXXXX')
+      MQTT_CLIENT.subscribe("NCTU");
     }
 
     // This is the function which handles received messages
     function myMessageArrived(message) {
+      console.log('YYYYYYYYYY')
       console.log("onMessageArrived: " + message.payloadString);
-      document.getElementById("messages").innerHTML += '<span>Topic: ' + message.destinationName + '  | ' + message
-        .payloadString + '</span><br/>';
       // Get the payload
       var messageBody = message.payloadString;
       console.log('messageBody', messageBody);
             //console.log("onMessageArrived: " + message.payloadString);
-      document.getElementById("messages").innerHTML += '<span>Topic: ' + message.destinationName + '  | ' + message
-        .payloadString + '</span><br/>';
 
       // Create a new HTML element wrapping the message payload
       var messageHTML = $("<p>" + messageBody + "</p>");
@@ -448,8 +438,8 @@
       // console.log('test socket')
       console.log('test mqtt')
 
-      testWebSocket()
-      // mqttConnect();
+      // testWebSocket()
+      mqttConnect();
       // startConnect();
     }
   </script>

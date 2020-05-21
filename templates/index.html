@@ -132,7 +132,104 @@
       console.log("onMessageArrived: " + message.payloadString);
       document.getElementById("messages").innerHTML += '<span>Topic: ' + message.destinationName + '  | ' + message.payloadString + '</span><br/>';
       updateScroll(); // Scroll to bottom of window
-    }
+	  next_msg = JSON.parse(message.payloadString);
+        // remove undefined point
+        var filtermsg = next_msg.filter(function (item, index, array) {
+          return item["object"] != undefined;
+        });
+
+
+        // next_markers = []
+        filtermsg.forEach(obj => {
+          // console.log(filtermsg)
+          let search_result = current_msg.findIndex((element) => {
+            return (obj["device"] == element["device"]) && (obj["number"] == element["number"])
+          });
+          if (search_result == -1) {
+            // No the same element in current msg
+            // add new google map object into next msg array
+            //======   new marker & info windows
+            newMarker(obj)
+          } else {
+            // have the same element in current msg
+            // pop google map markers from current array
+            // Set  location if distance > threshod
+            obj.marker = current_msg[search_result].marker
+            let search_line_result = lines.findIndex((line) => {
+              return ((obj["device"] == line.objectArray[0]["device"]) && (obj["number"] == line.objectArray[
+                0]["number"]))
+            });
+
+            if (obj["speed"] != 0) {
+              // update marker position
+              obj.marker.setPosition({
+                lat: obj['lat'],
+                lng: obj['long']
+              })
+
+              let speed = Number.parseFloat(obj["speed"]).toFixed(2);
+              let contentString = `<p>${obj["object"]},${obj["device"]},${obj["number"]},</br>${speed}</p>`
+              obj.marker.infowindow.open();
+              // ====== Add Marker in Line =====
+              if (search_line_result != -1) {
+                lines[search_line_result].objectArray.push(obj)
+                lines[search_line_result].objectPath.push(obj.marker.position)
+                if (lines[search_line_result].objectPath.length >= 5) {
+                  lines[search_line_result].objectArray.shift()
+                  lines[search_line_result].objectPath.shift()
+
+                  lines[search_line_result].getPath().removeAt(1);
+                }
+                lines[search_line_result].setPath(lines[search_line_result].objectPath)
+              } else {
+                // points exist , not found in any line
+                // new line in lines
+
+                let objectPath = [obj.marker.position]
+                let drawPolyLine = new google.maps.Polyline({
+                  path: objectPath,
+                  geodesic: true,
+                  strokeColor: strokeColorSet[obj["object"]]["strokeColor"],
+                  strokeOpacity: 0.8,
+                  strokeWeight: 6,
+                  title: 'object'
+
+                });
+                drawPolyLine.objectPath = objectPath
+                drawPolyLine.objectArray = [obj]
+                drawPolyLine.setMap(map);
+                lines.push(drawPolyLine);
+              }
+              // ===== End of Add marker in Line =====
+            } else {
+              // speed == 0
+
+              let diff_lat = Math.abs(obj["lat"] - current_msg[search_result]["lat"])
+              let diff_long = Math.abs(obj["long"] - current_msg[search_result]["long"])
+              if (diff_lat > jeter_threshold || diff_long > jeter_threshold) {
+                obj.marker.setPosition({
+                  lat: obj['lat'],
+                  lng: obj['long']
+                })
+              }
+              obj.marker.infowindow.close();
+
+
+              if (search_line_result != -1) {
+                lines[search_line_result].setMap(null)
+
+              }
+
+            }
+            current_msg.splice(search_result, 1)
+          }
+        });
+        //remove unused markers
+        deleteMarkers(current_msg)
+        //update current message array
+        current_msg = filtermsg
+        //delete volid line
+      }
 
     // Called when the disconnection button is pressed
     function startDisconnect() {

@@ -5,41 +5,43 @@
   <title>Simple Map</title>
   <meta name="viewport" content="initial-scale=1.0">
   <meta charset="utf-8">
+  <!-- Latest compiled and minified Bootstrap CSS -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <!-- import jquery library -->
+  <script src="https://code.jquery.com/jquery-3.1.0.min.js"></script>
+
+  <!-- import paho MQTT library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.2/mqttws31.min.js" type="text/javascript"></script>
+  <!--<script src="https://cdn.bootcdn.net/ajax/libs/paho-mqtt/1.1.0/paho-mqtt.js" type="text/javascript"></script>-->
   <!-- <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self' data:;"> -->
-  <style>
-    /* Always set the map height explicitly to define the size of the div
-       * element that contains the map. */
-    #map {
-      height: 100%;
-    }
-
-    #map div {
-      transition-property: all;
-      transition-duration: 300ms;
-      transition-timing-function: ease-out;
-    }
-
-    /* Optional: Makes the sample page fill the window. */
-    html,
-    body {
-      height: 100%;
-      margin: 0;
-      padding: 0;
-    }
-  </style>
 </head>
 
 <body>
   <div id="map"></div>
   <div id="marker1"></div>
   <div id="marker"></div>
+  <div class="wrapper">
+         <h1>mqtt-demo</h1>
+         <form id="connection-information-form">
+            <b>Hostname or IP Address:</b>
+            <input id="host" type="text" name="host" value="test.mosquitto.org"><br>
+            <b>Port:</b>
+            <input id="port" type="text" name="port" value="8080"><br>
+            <b>Topic:</b>
+            <input id="topic" type="text" name="topic" value="#"><br><br>
+            <input type="button" onclick="startConnect()" value="Connect">
+            <input type="button" onclick="startDisconnect()" value="Disconnect">
+         </form>
+         <div id="messages"></div>
+  </div>
 
 
   <script language="javascript" type="text/javascript">
-    // var wsUri ="ws://echo.websocket.org/"; 
+    // var wsUri ="ws://echo.websocket.org/";
     // var data1 = "ws://140.113.217.242:8000";
     // var data2 = "ws://140.113.217.242:8001";
     var data1 = "ws://140.113.217.214:9292"
+    // console.log('data1', data1);
 
     var websocket
     var websocket1
@@ -54,6 +56,236 @@
     var contentString
     var lines = []
     var linesCache = []
+
+    // var mqtt = require('mqtt');
+    // Generate a new random MQTT client id on each page load
+    var MQTT_CLIENT_ID = "iot_web_" + Math.floor((1 + Math.random()) * 0x10000000000).toString(16);
+    var opt = {
+      host: 'mqtt://127.0.0.1',
+      port: 1883,
+      clientId: "test"
+    }
+    //host = "test.mosquitto.org";
+    //port = "8080";
+
+    var MQTT_CLIENT = new Paho.MQTT.Client("test.mosquitto.org", 8080, MQTT_CLIENT_ID);
+    // Called after form input is processed
+    function startConnect() {
+      // Generate a random client ID
+      clientID = "clientID-" + Math.floor((1 + Math.random()) * 0x10000000000).toString(16);
+
+      // Fetch the hostname/IP address and port number from the form
+      host = document.getElementById("host").value;
+      port = document.getElementById("port").value;
+      // host = "127.0.0.1";
+      // port = "1883"
+
+      // Print output for the user in the messages div
+      document.getElementById("messages").innerHTML += '<span>Connecting to: ' + host + ' on port: ' + port +
+        '</span><br/>';
+      document.getElementById("messages").innerHTML += '<span>Using the following client value: ' + clientID +
+        '</span><br/>';
+
+      // Initialize new Paho client connection
+      // client = new Paho.MQTT.Client("140.113.217.242", 8000, clientID);
+      client = new Paho.MQTT.Client(host, Number(port), clientID);
+      // client = new Paho.Client(host, Number(port), clientID);
+      // client = new Paho.MQTT.Client('127.0.0.1', 1883, "test");
+
+      // Set callback handlers
+      client.onConnectionLost = onConnectionLost;
+      client.onMessageArrived = onMessageArrived;
+
+      // Connect the client, if successful, call onConnect function
+      client.connect({
+        onSuccess: onConnect,
+      });
+    }
+
+    // Called when the client connects
+    function onConnect() {
+      // Fetch the MQTT topic from the form
+      topic = document.getElementById("topic").value;
+      // topic = "NCTU"
+
+      // Print output for the user in the messages div
+      document.getElementById("messages").innerHTML += '<span>Subscribing to: ' + topic + '</span><br/>';
+
+      // Subscribe to the requested topic
+      console.log("onConnect");
+      client.subscribe(topic);
+      //message = new Paho.MQTT.Message("Hello");
+      //message.destinationName = "World";
+      //client.send(message);
+    }
+
+    // Called when the client loses its connection
+    function onConnectionLost(responseObject) {
+      console.log("onConnectionLost: Connection Lost");
+      if (responseObject.errorCode !== 0) {
+        console.log("onConnectionLost: " + responseObject.errorMessage);
+      }
+    }
+
+    // Called when a message arrives
+    function onMessageArrived(message) {
+      console.log("onMessageArrived: " + message.payloadString);
+      document.getElementById("messages").innerHTML += '<span>Topic: ' + message.destinationName + '  | ' + message.payloadString + '</span><br/>';
+      updateScroll(); // Scroll to bottom of window
+	  next_msg = JSON.parse(message.payloadString);
+        // remove undefined point
+        var filtermsg = next_msg.filter(function (item, index, array) {
+          return item["object"] != undefined;
+        });
+
+
+        // next_markers = []
+        filtermsg.forEach(obj => {
+          // console.log(filtermsg)
+          let search_result = current_msg.findIndex((element) => {
+            return (obj["device"] == element["device"]) && (obj["number"] == element["number"])
+          });
+          if (search_result == -1) {
+            // No the same element in current msg
+            // add new google map object into next msg array
+            //======   new marker & info windows
+            newMarker(obj)
+          } else {
+            // have the same element in current msg
+            // pop google map markers from current array
+            // Set  location if distance > threshod
+            obj.marker = current_msg[search_result].marker
+            let search_line_result = lines.findIndex((line) => {
+              return ((obj["device"] == line.objectArray[0]["device"]) && (obj["number"] == line.objectArray[
+                0]["number"]))
+            });
+
+            if (obj["speed"] != 0) {
+              // update marker position
+              obj.marker.setPosition({
+                lat: obj['lat'],
+                lng: obj['long']
+              })
+
+              let speed = Number.parseFloat(obj["speed"]).toFixed(2);
+              let contentString = `<p>${obj["object"]},${obj["device"]},${obj["number"]},</br>${speed}</p>`
+              obj.marker.infowindow.open();
+              // ====== Add Marker in Line =====
+              if (search_line_result != -1) {
+                lines[search_line_result].objectArray.push(obj)
+                lines[search_line_result].objectPath.push(obj.marker.position)
+                if (lines[search_line_result].objectPath.length >= 5) {
+                  lines[search_line_result].objectArray.shift()
+                  lines[search_line_result].objectPath.shift()
+
+                  lines[search_line_result].getPath().removeAt(1);
+                }
+                lines[search_line_result].setPath(lines[search_line_result].objectPath)
+              } else {
+                // points exist , not found in any line
+                // new line in lines
+
+                let objectPath = [obj.marker.position]
+                let drawPolyLine = new google.maps.Polyline({
+                  path: objectPath,
+                  geodesic: true,
+                  strokeColor: strokeColorSet[obj["object"]]["strokeColor"],
+                  strokeOpacity: 0.8,
+                  strokeWeight: 6,
+                  title: 'object'
+
+                });
+                drawPolyLine.objectPath = objectPath
+                drawPolyLine.objectArray = [obj]
+                drawPolyLine.setMap(map);
+                lines.push(drawPolyLine);
+              }
+              // ===== End of Add marker in Line =====
+            } else {
+              // speed == 0
+
+              let diff_lat = Math.abs(obj["lat"] - current_msg[search_result]["lat"])
+              let diff_long = Math.abs(obj["long"] - current_msg[search_result]["long"])
+              if (diff_lat > jeter_threshold || diff_long > jeter_threshold) {
+                obj.marker.setPosition({
+                  lat: obj['lat'],
+                  lng: obj['long']
+                })
+              }
+              obj.marker.infowindow.close();
+
+
+              if (search_line_result != -1) {
+                lines[search_line_result].setMap(null)
+
+              }
+
+            }
+            current_msg.splice(search_result, 1)
+          }
+        });
+        //remove unused markers
+        deleteMarkers(current_msg)
+        //update current message array
+        current_msg = filtermsg
+        //delete volid line
+      }
+
+    // Called when the disconnection button is pressed
+    function startDisconnect() {
+      client.disconnect();
+      document.getElementById("messages").innerHTML += '<span>Disconnected</span><br/>';
+      updateScroll(); // Scroll to bottom of window
+    }
+    // Updates #messages div to auto-scroll
+    function updateScroll() {
+        var element = document.getElementById("messages");
+        element.scrollTop = element.scrollHeight;
+    }
+
+    function mqttConnect() {
+      var hostname = "broker.hivemq.com"
+      var port = 8000
+      // var hostname = "140.113.217.214"
+      // var port = 9292
+      /*var hostname = "140.113.217.242"
+      var port = 9292*/
+
+      // Create a MQTT client instance
+      // var MQTT_CLIENT = new Paho.MQTT.Client("test.mosquitto.org", 8080, "/ws", MQTT_CLIENT_ID);
+      var MQTT_CLIENT = new Paho.MQTT.Client(hostname, port, MQTT_CLIENT_ID);
+      console.log("INFO", "Connecting to Server: [Host: ", hostname, ", Port: ", port, ", ID: ", MQTT_CLIENT_ID, "]");
+      // console.log('MQTT_CLIENT', MQTT_CLIENT)
+
+      // Tell the client instance to connect to the MQTT broker
+      MQTT_CLIENT.connect({
+        onSuccess: myClientConnected
+      });
+      // Tell MQTT_CLIENT to call myMessageArrived(message) each time a new message arrives
+      MQTT_CLIENT.onMessageArrived = myMessageArrived;
+
+    }
+    // This is the function which handles subscribing to topics after a connection is made
+    function myClientConnected() {
+      console.log('Success Connect XXXXXXXX')
+      MQTT_CLIENT.subscribe("NCTU");
+    }
+
+    // This is the function which handles received messages
+    function myMessageArrived(message) {
+      console.log('YYYYYYYYYY')
+      console.log("onMessageArrived: " + message.payloadString);
+      // Get the payload
+      var messageBody = message.payloadString;
+      console.log('messageBody', messageBody);
+            //console.log("onMessageArrived: " + message.payloadString);
+
+      // Create a new HTML element wrapping the message payload
+      var messageHTML = $("<p>" + messageBody + "</p>");
+
+      // Insert it inside the ```id=updateMe``` element above everything else that is there
+      $("#messages").prepend(messageHTML);
+    };
 
 
     var strokeColorSet = {
@@ -86,7 +318,10 @@
 
     function newMarker(obj) {
       let marker = new google.maps.Marker({
-        position: { lat: obj['lat'], lng: obj['lon'] },
+        position: {
+          lat: obj['lat'],
+          lng: obj['long']
+        },
         map: map,
         icon: icons[obj["object"]]["icon"],
         title: 'object',
@@ -100,24 +335,24 @@
         content: contentString
       });
 
-      // Set info windows 
+      // Set info windows
       if (obj["speed"] != 0) {
         marker.infowindow.open(map, marker);
-      }
-      else {
+      } else {
         marker.infowindow.close();
       }
       obj.marker = marker
       //===== end of new marker & windows
     }
+
     function testWebSocket() {
       /**
-      * 创建一个WebSocket对象
-      * url注意事项上面已经说过在此在提醒一下:
-      * 参数是需要连接的服务器端的地址，同http协议使用http://开头一样
-      * WebSocket协议的URL使用ws://开头
-      * 另外安全的WebSocket协议使用wss://开头。
-      */
+       * 创建一个WebSocket对象
+       * url注意事项上面已经说过在此在提醒一下:
+       * 参数是需要连接的服务器端的地址，同http协议使用http://开头一样
+       * WebSocket协议的URL使用ws://开头
+       * 另外安全的WebSocket协议使用wss://开头。
+       */
       // var data2 = JSON.parse(data1)
 
       websocket = new WebSocket(data1);
@@ -164,19 +399,22 @@
             // add new google map object into next msg array
             //======   new marker & info windows
             newMarker(obj)
-          }
-          else {
+          } else {
             // have the same element in current msg
             // pop google map markers from current array
             // Set  location if distance > threshod
             obj.marker = current_msg[search_result].marker
             let search_line_result = lines.findIndex((line) => {
-                return ((obj["device"] == line.objectArray[0]["device"]) && (obj["number"] == line.objectArray[0]["number"]))
-              });
+              return ((obj["device"] == line.objectArray[0]["device"]) && (obj["number"] == line.objectArray[
+                0]["number"]))
+            });
 
             if (obj["speed"] != 0) {
               // update marker position
-              obj.marker.setPosition({ lat: obj['lat'], lng: obj['lon'] })
+              obj.marker.setPosition({
+                lat: obj['lat'],
+                lng: obj['long']
+              })
 
               let speed = Number.parseFloat(obj["speed"]).toFixed(2);
               let contentString = `<p>${obj["object"]},${obj["device"]},${obj["number"]},</br>${speed}</p>`
@@ -212,20 +450,22 @@
                 lines.push(drawPolyLine);
               }
               // ===== End of Add marker in Line =====
-            }
-            else {
+            } else {
               // speed == 0
 
               let diff_lat = Math.abs(obj["lat"] - current_msg[search_result]["lat"])
-              let diff_long = Math.abs(obj["lon"] - current_msg[search_result]["lon"])
+              let diff_long = Math.abs(obj["long"] - current_msg[search_result]["long"])
               console.log(diff_lat)
               console.log(diff_long)
               console.log('-----')
-              if (diff_lat > jeter_threshold || diff_long > jeter_threshold){
-                obj.marker.setPosition({ lat: obj['lat'], lng: obj['lon'] })
+              if (diff_lat > jeter_threshold || diff_long > jeter_threshold) {
+                obj.marker.setPosition({
+                  lat: obj['lat'],
+                  lng: obj['long']
+                })
               }
               obj.marker.infowindow.close();
-              
+
 
               if (search_line_result != -1) {
                 lines[search_line_result].setMap(null)
@@ -254,23 +494,18 @@
       }
     }
 
-
-
-
-
-
-
-
-
     function initMap() {
 
       map = new google.maps.Map(document.getElementById('map'), {
         // zoom: 21,
         zoom: 21,
         // zoom: 20,
-        
+
         // center: { lat: 24.7870344, lng: 121.0003 }
-        center: { lat: 24.786704, lng: 121.002128 }
+        center: {
+          lat: 24.786704,
+          lng: 121.002128
+        }
       });
 
       setMarkers(map);
@@ -283,7 +518,8 @@
         let search_delete_line = lines.findIndex(line => {
           // console.log(e["device"])
           // console.log(line.objectArray[line.objectArray.length-1]["device"])
-          return ((e["device"] == line.objectArray[line.objectArray.length - 1]["device"]) && (e["number"] == line.objectArray[line.objectArray.length - 1]["number"]))
+          return ((e["device"] == line.objectArray[line.objectArray.length - 1]["device"]) && (e["number"] ==
+            line.objectArray[line.objectArray.length - 1]["number"]))
         })
         if (search_delete_line != -1) {
           lines[search_delete_line].setMap(null);
@@ -296,19 +532,14 @@
 
     function setMarkers(map) {
 
-      console.log('test socket')
+      // console.log('test socket')
+      console.log('test mqtt')
 
-      testWebSocket()
-
+      // testWebSocket()
+      mqttConnect();
+      // startConnect();
     }
-
-
-
-
   </script>
-
-
-
 
   <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCHO3eslXasBmWiNw335Al3W50vIGyIClU&callback=initMap"
     async defer></script>

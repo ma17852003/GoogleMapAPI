@@ -267,13 +267,13 @@
     }
     // This is the function which handles subscribing to topics after a connection is made
     function myClientConnected() {
-      console.log('Success Connect XXXXXXXX')
+      console.log('Success Connected')
       MQTT_CLIENT.subscribe("NCTU");
     }
 
     // This is the function which handles received messages
     function myMessageArrived(message) {
-      console.log('YYYYYYYYYY')
+      // console.log('YYYYYYYYYY')
       console.log("onMessageArrived: " + message.payloadString);
       // Get the payload
       var messageBody = message.payloadString;

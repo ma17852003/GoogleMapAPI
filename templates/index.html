@@ -16,7 +16,7 @@
   <!-- <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self' data:;"> -->
   <script type="text/javascript" src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
   <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.6/socket.io.min.js"></script>
-  <script type="text/javascript" charset="utf-8">
+  <!--<script type="text/javascript" charset="utf-8">
     $(document).ready(function () {
       var socket = io.connect('http://' + document.domain + ':' + location.port);
 
@@ -28,14 +28,14 @@
         $('#subscribe_messages').append(text + '<br><br>');
       })
     });
-  </script>
+  </script>-->
 </head>
 
 <body>
   <div id="map"></div>
   <div id="marker1"></div>
   <div id="marker"></div>
-  <div class="wrapper">
+  <!--<div class="wrapper">
          <h1>mqtt-demo</h1>
          <form id="connection-information-form">
             <b>Hostname or IP Address:</b>
@@ -52,15 +52,16 @@
   <div class="wrapper">
     <h1>mqtt-ws</h1>
     <div id="subscribe_messages"></div>
-  </div>
+  </div>-->
 
 
   <script language="javascript" type="text/javascript">
     // var wsUri ="ws://echo.websocket.org/";
     // var data1 = "ws://140.113.217.242:8000";
     // var data2 = "ws://140.113.217.242:8001";
-    var data1 = "ws://140.113.217.214:9292"
-    // console.log('data1', data1);
+    // var data1 = "ws://140.113.217.214:9292";
+    var data1 = "ws://140.113.217.24:8080";
+    console.log('data1', data1);
 
     var websocket
     var websocket1
@@ -551,11 +552,11 @@
 
     function setMarkers(map) {
 
-      // console.log('test socket')
-      console.log('test mqtt')
+      console.log('test socket')
+      // console.log('test mqtt')
 
-      // testWebSocket()
-      mqttConnect();
+      testWebSocket()
+      // mqttConnect();
       // startConnect();
     }
   </script>

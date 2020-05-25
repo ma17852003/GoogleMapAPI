@@ -2,21 +2,38 @@ from flask import Flask, render_template
 import eventlet
 from flask_mqtt import Mqtt
 from flask_socketio import SocketIO
+from flask_bootstrap import Bootstrap
 
-app = Flask(__name__)
 eventlet.monkey_patch()
+app = Flask(__name__)
 
-app.config['MQTT_BROKER_URL'] = 'test.mosquitto.org'
+# app.config['SECRET'] = 'my secret key'
+app.config['TEMPLATES_AUTO_RELOAD'] = True
+# app.config['MQTT_BROKER_URL'] = '192.168.0.111'
+# app.config['MQTT_BROKER_URL'] = 'test.mosquitto.org'
+app.config['MQTT_BROKER_URL'] = 'broker.hivemq.com'
 app.config['MQTT_BROKER_PORT'] = 1883
+# app.config['MQTT_BROKER_PORT'] = 3000
+# app.config['MQTT_USERNAME'] = ''
+# app.config['MQTT_PASSWORD'] = ''
+app.config['MQTT_KEEPALIVE'] = 5
+app.config['MQTT_TLS_ENABLED'] = False
 # app.config['MQTT_BROKER_URL'] = '140.113.217.24'
 # app.config['MQTT_BROKER_PORT'] = 8080
 app.config['MQTT_REFRESH_TIME'] = 1.0
 
+# Parameters for SSL enabled
+# app.config['MQTT_BROKER_PORT'] = 8883
+# app.config['MQTT_TLS_ENABLED'] = True
+# app.config['MQTT_TLS_INSECURE'] = True
+# app.config['MQTT_TLS_CA_CERTS'] = 'ca.crt'
+
 mqtt = Mqtt(app)
 socketio = SocketIO(app)
+bootstrap = Bootstrap(app)
 
 @app.route('/')
-def hello_world():
+def index():
     return render_template('index.html')
 
 @mqtt.on_connect()
@@ -35,9 +52,11 @@ def handle_mqtt_message(client, userdata, message):
 @mqtt.on_log()
 def handle_logging(client, userdata, level, buf):
     print(level, buf)
+    if level == MQTT_LOG_ERR:
+        print('Error: {}'.format(buf))
 
-socketio.run(app, host='localhost', port=5000, use_reloader=True, debug=True)
 
-# if __name__ == '__main__':
+if __name__ == '__main__':
+    socketio.run(app, host='localhost', port=5000,
+                 use_reloader=True, debug=True)
 #     app.run()
-

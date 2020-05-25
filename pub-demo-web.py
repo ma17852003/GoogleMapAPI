@@ -18,8 +18,8 @@ client = mqtt.Client()
 
 # 設定連線資訊(IP, Port, 連線時間)
 # client.connect("192.168.0.111", 1883, 60)
-# client.connect("127.0.0.1", 1883, 60)
-client.connect("140.113.217.24", 1883, 60)
+client.connect("127.0.0.1", 1883, 60)
+# client.connect("140.113.217.24", 1883, 60)
 
 while True:
     t0 = random.randint(0,30)
@@ -28,5 +28,5 @@ while True:
     print (json.dumps(payload))
     #要發布的主題和內容
     #client.publish("Try/MQTT", json.dumps(payload))
-    client.publish("NCTU-ROOM", json.dumps(payload))
+    client.publish("NCTU", json.dumps(payload))
     time.sleep(5)

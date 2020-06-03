@@ -55,12 +55,21 @@
   </div>-->
 
 
+  <!-- <script src="/socket.io/socket.io.js"></script>
+  <script>
+    var socket = io();
+
+    socket.emit('getCounter', function(error, counter) {
+      console.log('Counter is', counter);
+    });
+  </script>
+   -->
   <script language="javascript" type="text/javascript">
     // var wsUri ="ws://echo.websocket.org/";
     // var data1 = "ws://140.113.217.242:8000";
     // var data2 = "ws://140.113.217.242:8001";
-    var data1 = "ws://140.113.217.214:9292";
-    // var data1 = "ws://140.113.217.24:8080";
+    // var data1 = "ws://140.113.217.214:9292";
+    var data1 = "ws://140.113.217.24:8000";
     console.log('data1', data1);
 
     var websocket
@@ -76,6 +85,8 @@
     var contentString
     var lines = []
     var linesCache = []
+
+
 
     // var mqtt = require('mqtt');
     // Generate a new random MQTT client id on each page load
@@ -374,6 +385,8 @@
        * 另外安全的WebSocket协议使用wss://开头。
        */
       // var data2 = JSON.parse(data1)
+      var starTime;
+      var latency
 
       websocket = new WebSocket(data1);
 
@@ -381,13 +394,19 @@
 
         console.log('open sock')
         const sendNowTime = setInterval(() => {
+          starTime = Date.now();
+
           websocket.send('{"device":"client0"}')
+          // console.log(starTime)
         }, 200)
 
       };
 
       websocket.onclose = function (evt) {
+        // latency = Date.now() - starTime;
+        // console.log(latency)
         console.log('close socket')
+
 
       };
 
@@ -395,9 +414,11 @@
 
 
         next_msg = JSON.parse(evt.data);
+        latency = Date.now() - starTime;
+        console.log('latency:', latency)
 
 
-        console.log(evt.data)
+        // console.log(evt.data)
         // remove undefined point
         var filtermsg = next_msg.filter(function (item, index, array) {
           return item["object"] != undefined;
@@ -419,7 +440,8 @@
             // add new google map object into next msg array
             //======   new marker & info windows
             newMarker(obj)
-          } else {
+          } else
+          {
             // have the same element in current msg
             // pop google map markers from current array
             // Set  location if distance > threshod
@@ -514,7 +536,28 @@
       }
     }
 
+    var start_execution=Math.floor( new Date().getTime() );
+
+    //In response of the call initialize end time and call function to compute latency
+    var end_execution=Math.floor( new Date().getTime() );
+
+    // function call to generate latency
+
+
+
+    // function calculateLatency(){
+    //   var latency= end_execution-start_execution;
+    //   console.log(latency)
+    // }
+
+
     function initMap() {
+
+      // calculateLatency();
+      // var minutes = (new Date()).getMinutes();
+      // var seconds = (new Date()).getSeconds();
+      // console.log(seconds);
+
 
       map = new google.maps.Map(document.getElementById('map'), {
         // zoom: 21,
@@ -531,6 +574,7 @@
         }
       });
 
+      // console.log(minutes,seconds)
       setMarkers(map);
 
     }

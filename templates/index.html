@@ -414,21 +414,27 @@
 
 
       };
-
+      evtMSG = [];
       websocket.onmessage = function (evt) {
         next_msg = JSON.parse(evt.data);
-        evttt = evt.data;
+        //evttt = evt.data;
+        evtMSG.push(evt.data);
         latency = Date.now() - starTime;
         // console.log('latency:', latency)
 
-
-      setTimeout("create(evttt, 'dataFusion.txt', 'text/plain')");
+      if (evtMSG.length == 20) {
+        console.log(`Len: ${evtMSG.length}`);
+        create(evtMSG, 'dataFusion.txt', 'text/plain');
+      }
+      // setTimeout("create(evtMSG, 'dataFusion.txt', 'text/plain')", 10000);
 
       create = function (text, name, type) {
+        console.log('text', text)
         var dlbtn = document.getElementById("dlbtn");
         var file = new Blob([text], {type: type});
         dlbtn.href = URL.createObjectURL(file);
         dlbtn.download = name;
+        evtMSG = [];
       }
 
 

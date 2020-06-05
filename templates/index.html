@@ -35,6 +35,10 @@
   <div id="map"></div>
   <div id="marker1"></div>
   <div id="marker"></div>
+  <div class="wrapper">
+    <h1>Download</h1>
+    <a href="javascript:void(0)" id="dlbtn"><button>click here to download your file</button></a>
+  </div>
   <!--<div class="wrapper">
          <h1>mqtt-demo</h1>
          <form id="connection-information-form">
@@ -69,7 +73,8 @@
     // var data1 = "ws://140.113.217.242:8000";
     // var data2 = "ws://140.113.217.242:8001";
     // var data1 = "ws://140.113.217.214:9292";
-    var data1 = "ws://140.113.217.24:8000";
+    // var data1 = "ws://140.113.217.24:8000";
+    var data1 = "ws://192.168.0.111:8000";
     console.log('data1', data1);
 
     var websocket
@@ -411,11 +416,20 @@
       };
 
       websocket.onmessage = function (evt) {
-
-
         next_msg = JSON.parse(evt.data);
+        evttt = evt.data;
         latency = Date.now() - starTime;
-        console.log('latency:', latency)
+        // console.log('latency:', latency)
+
+
+      setTimeout("create(evttt, 'dataFusion.txt', 'text/plain')");
+
+      create = function (text, name, type) {
+        var dlbtn = document.getElementById("dlbtn");
+        var file = new Blob([text], {type: type});
+        dlbtn.href = URL.createObjectURL(file);
+        dlbtn.download = name;
+      }
 
 
         // console.log(evt.data)
@@ -497,9 +511,9 @@
 
               let diff_lat = Math.abs(obj["lat"] - current_msg[search_result]["lat"])
               let diff_long = Math.abs(obj["long"] - current_msg[search_result]["long"])
-              console.log(diff_lat)
-              console.log(diff_long)
-              console.log('-----')
+              // console.log(diff_lat)
+              // console.log(diff_long)
+              // console.log('-----')
               if (diff_lat > jeter_threshold || diff_long > jeter_threshold) {
                 obj.marker.setPosition({
                   lat: obj['lat'],

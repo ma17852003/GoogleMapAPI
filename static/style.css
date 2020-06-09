@@ -1,5 +1,17 @@
 /* Always set the map height explicitly to define the size of the div
     * element that contains the map. */
+.gm-style .gm-style-iw {
+    font-weight: 300;
+    font-size: 8px;
+    max-width: 47px;
+    max-height: 33px;
+    overflow: hidden;
+    padding: 10px;
+
+}
+.gm-style-iw-d {
+    max-height: 32px;
+}
 #map {
     height: 100%;
 }

@@ -71,8 +71,10 @@
     };
 
     var jeter_threshold = 0.0002
-
+  
     function newMarker(obj) {
+      let number1 = obj["number"];
+      let number2 = number1.toString();
       let marker = new google.maps.Marker({
         position: {
           lat: obj['lat'],
@@ -80,7 +82,8 @@
         },
         map: map,
         icon: icons[obj["object"]]["icon"],
-        title: 'object',
+        title: number2,
+        // label: "car",
         // opacity: 0.5,
         zIndex: obj['number']
 
@@ -161,7 +164,7 @@
         // console.log(evt.data)
         // remove undefined point
         var filtermsg = next_msg.filter(function (item, index, array) {
-        if (item["speed"] < 0 )
+        if (item["speed"] <= 1 )
         {
           item["speed"] = 0;
         }

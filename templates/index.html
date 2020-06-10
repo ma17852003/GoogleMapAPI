@@ -9,7 +9,7 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
   <!-- import jquery library -->
   <script src="https://code.jquery.com/jquery-3.1.0.min.js"></script>
-  <link rel="shortcut icon" href="#"/>
+  <link rel="shortcut icon" href="#" />
 
   <script type="text/javascript" src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
   <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.6/socket.io.min.js"></script>
@@ -75,7 +75,7 @@
         url: icons[obj["object"]]["icon"],
         // This marker is 25 pixels wide by 25 pixels high.
         scaledSize: new google.maps.Size(25, 25),
-  
+
       };
       let number1 = obj["number"];
       let number2 = number1.toString();
@@ -175,10 +175,9 @@
         // console.log(evt.data)
         // remove undefined point
         var filtermsg = next_msg.filter(function (item, index, array) {
-        if (item["speed"] <= 1 )
-        {
-          item["speed"] = 0;
-        }
+          if (item["speed"] <= 1) {
+            item["speed"] = 0;
+          }
           return item["object"] != undefined;
         });
 
@@ -188,7 +187,7 @@
           let search_result = current_msg.findIndex((element) => {
             return (obj["device"] == element["device"]) && (obj["number"] == element["number"])
           });
-          console.log("ID:",obj["number"], "lat:", obj["lat"], "long:", obj["long"], "speed: ", obj["speed"]);
+          // console.log("ID:", obj["number"], "lat:", obj["lat"], "long:", obj["long"], "speed: ", obj["speed"]);
           // console.log(search_result)
 
           if (search_result == -1) {
@@ -229,6 +228,7 @@
               if (search_line_result != -1) {
                 lines[search_line_result].objectArray.push(obj)
                 lines[search_line_result].objectPath.push(obj.marker.position)
+
                 if (lines[search_line_result].objectPath.length >= 5) {
                   lines[search_line_result].objectArray.shift()
                   lines[search_line_result].objectPath.shift()
@@ -240,6 +240,7 @@
                 // new line in lines
 
                 let objectPath = [obj.marker.position]
+                console.log(objectPath[2] - objectPath[1])
                 let drawPolyLine = new google.maps.Polyline({
                   path: objectPath,
                   geodesic: true,

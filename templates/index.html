@@ -68,7 +68,7 @@
       },
     };
 
-    var jeter_threshold = 0.0002
+    var jeter_threshold = 0.0003
     function newMarker(obj) {
       var iconsss = {
         // url: 'https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png',
@@ -175,7 +175,7 @@
         // console.log(evt.data)
         // remove undefined point
         var filtermsg = next_msg.filter(function (item, index, array) {
-          if (item["speed"] <= 1) {
+          if (item["car"] && item["speed"] <= 4 | item["people"] && item["speed"] < 0) {
             item["speed"] = 0;
           }
           return item["object"] != undefined;
@@ -187,7 +187,7 @@
           let search_result = current_msg.findIndex((element) => {
             return (obj["device"] == element["device"]) && (obj["number"] == element["number"])
           });
-          // console.log("ID:", obj["number"], "lat:", obj["lat"], "long:", obj["long"], "speed: ", obj["speed"]);
+          console.log("ID:", obj["number"], "lat:", obj["lat"], "long:", obj["long"], "speed: ", obj["speed"]);
           // console.log(search_result)
 
           if (search_result == -1) {
@@ -228,6 +228,8 @@
               if (search_line_result != -1) {
                 lines[search_line_result].objectArray.push(obj)
                 lines[search_line_result].objectPath.push(obj.marker.position)
+                // console.log('ObjPath diff')
+                // console.log(objectPath)
 
                 if (lines[search_line_result].objectPath.length >= 5) {
                   lines[search_line_result].objectArray.shift()
@@ -240,7 +242,6 @@
                 // new line in lines
 
                 let objectPath = [obj.marker.position]
-                console.log(objectPath[2] - objectPath[1])
                 let drawPolyLine = new google.maps.Polyline({
                   path: objectPath,
                   geodesic: true,
@@ -267,6 +268,9 @@
                   lat: obj['lat'],
                   lng: obj['long']
                 })
+                console.log('obj lat', obj.marker)
+                console.log('obj long', obj.marker)
+                //console.log(obj['long'])
               }
               // console.log("closed")
               //obj.marker.infowindow.close();

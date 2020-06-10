@@ -66,13 +66,21 @@
       bike: {
         icon: '/static/images/bike.png'
       },
-
-
     };
 
     var jeter_threshold = 0.0002
-  
     function newMarker(obj) {
+      var iconsss = {
+        // url: 'https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png',
+        url: icons[obj["object"]]["icon"],
+        // This marker is 20 pixels wide by 32 pixels high.
+        size: new google.maps.Size(30, 30),
+        // The origin for this image is (0, 0).
+        // origin: new google.maps.Point(96, 0),
+        scaledSize: new google.maps.Size(30, 30),
+        // The anchor for this image is the base of the flagpole at (0, 32).
+        // anchor: new google.maps.Point(48, 48)
+      };
       let number1 = obj["number"];
       let number2 = number1.toString();
       let marker = new google.maps.Marker({
@@ -81,12 +89,23 @@
           lng: obj['long']
         },
         map: map,
-        icon: icons[obj["object"]]["icon"],
+        //icon: icons[obj["object"]]["icon"],
+        icon: iconsss,
+        size: '120px',
+        // animation: google.maps.Animation.DROP,
+        label: {
+          text: number2,
+          fontWeight: 'bold',
+          fontSize: '8px',
+          fontFamily: '"Courier New", Courier,Monospace',
+          color: 'black'
+        },
+        // scaleSize: new google.maps.Size(50, 50),
         title: number2,
-        // label: "car",
+        // label: number2,
+        labelOrigin: new google.maps.Point(100, 1000),
         // opacity: 0.5,
         zIndex: obj['number']
-
       });
       let speed = Number.parseFloat(Math.abs(obj["speed"])).toFixed(2);
       // let contentString = `<p>${obj["object"]},${obj["device"]},${obj["number"]},</br>${speed}</p>`
@@ -98,11 +117,11 @@
       // Set info windows
       if (Math.abs(obj["speed"]) != 0) {
         // console.log("inforprint")
-        marker.infowindow.open(map, marker);
+        // marker.infowindow.open(map, marker);
         // console.log("test")
       } else {
         // console.log("info closed")
-        marker.infowindow.close();
+        // marker.infowindow.close();
       }
       obj.marker = marker
       //===== end of new marker & windows
@@ -211,7 +230,7 @@
                 content: contentString
               });
               // console.log("open")
-              obj.marker.infowindow.open();
+              //obj.marker.infowindow.open();
               // marker.infowindow.open(map, marker);
               // console.log("closed")
               // ====== Add Marker in Line =====
@@ -257,7 +276,7 @@
                 })
               }
               // console.log("closed")
-              obj.marker.infowindow.close();
+              //obj.marker.infowindow.close();
 
 
               if (search_line_result != -1) {

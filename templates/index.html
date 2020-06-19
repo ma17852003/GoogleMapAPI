@@ -26,8 +26,8 @@
 
 
   <script language="javascript" type="text/javascript">
-    var data1 = "ws://140.113.217.214:9292";
-    // var data1 = "ws://127.0.0.1:8000"
+    // var data1 = "ws://140.113.217.214:9292";
+    var data1 = "ws://127.0.0.1:8000"
     // var data1 = "ws://192.168.0.107:8000";
     // console.log('data1', data1);
 
@@ -69,6 +69,7 @@
     };
 
     var jeter_threshold = 0.0003
+
     function newMarker(obj) {
       var iconsss = {
         // url: 'https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png',
@@ -77,8 +78,12 @@
         scaledSize: new google.maps.Size(25, 25),
 
       };
+      // ID
       let number1 = obj["number"];
       let number2 = number1.toString();
+      let image = {
+        url: 'https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png'
+      };
       let marker = new google.maps.Marker({
         position: {
           lat: obj['lat'],
@@ -101,23 +106,25 @@
       });
       let speed = Number.parseFloat(Math.abs(obj["speed"])).toFixed(2);
       // let contentString = `<p>${obj["object"]},${obj["device"]},${obj["number"]},</br>${speed}</p>`
-      let contentString = `<p>${obj["number"]}</p>`
+      // let contentString = `<p>${obj["number"]}</p>`
+      let contentString = `<p>${obj["object"]},${obj["device"]},${obj["number"]},</br><image src='https://storage.cloud.google.com/nctuauto/walk1/JPEGS/Walk1000.jpg' alt='image in infowindow'>`
       marker.infowindow = new google.maps.InfoWindow({
         content: contentString
       });
+      marker.addListener('click', function () {
+        marker.infowindow.open(map, marker);
+      });
 
-      // Set info windows
-      if (Math.abs(obj["speed"]) != 0) {
-        // console.log("inforprint")
-        // marker.infowindow.open(map, marker);
-        // console.log("test")
-      } else {
-        // console.log("info closed")
-        // marker.infowindow.close();
-      }
+
       obj.marker = marker
       //===== end of new marker & windows
     }
+
+
+    // var markerCluster = new MarkerClusterer(map, obj.markers,
+    //   { 
+    //     imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m' 
+    //   });
 
     function testWebSocket() {
       /**
@@ -151,7 +158,6 @@
       evtMSG = [];
       websocket.onmessage = function (evt) {
         next_msg = JSON.parse(evt.data);
-        //evttt = evt.data;
         evtMSG.push(evt.data);
         latency = Date.now() - starTime;
         // console.log('latency(ms):', latency)
@@ -203,8 +209,7 @@
 
             obj.marker = current_msg[search_result].marker
             let search_line_result = lines.findIndex((line) => {
-              return ((obj["device"] == line.objectArray[0]["device"]) && (obj["number"] == line.objectArray[
-                0]["number"]))
+              return ((obj["device"] == line.objectArray[0]["device"]) && (obj["number"] == line.objectArray[0]["number"]))
             });
 
             // if (obj["speed"] != 0 && obj["device"] && obj["number"]) {
@@ -216,9 +221,14 @@
               })
               let speed = Number.parseFloat(Math.abs(obj["speed"])).toFixed(2);
               // let contentString = `<p>${obj["object"]},${obj["device"]},${obj["number"]},</br>${speed}</p>`
-              let contentString = `<p>${obj["number"]}</p>`
-              obj.marker.infowindow = new google.maps.InfoWindow({
-                content: contentString
+              // let contentString = `<p>${obj["number"]}</p>`
+              // let contentString = `"795 Park Ave, Suite 120<img src=/static/images/car.png alt='image in infowindow'>"`
+              // let contentString = `<p>${obj["object"]},${obj["device"]},${obj["number"]},</br><image src='https://storage.cloud.google.com/nctuauto/walk1/JPEGS/Walk1000.jpg' alt='image in infowindow'>`
+              // obj.marker.infowindow = new google.maps.InfoWindow({
+              //   content: contentString
+              // });
+              obj.marker.addListener('click', function () {
+                obj.marker.infowindow.open(map, obj.marker);
               });
               // console.log("open")
               // obj.marker.infowindow.open();
@@ -228,9 +238,6 @@
               if (search_line_result != -1) {
                 lines[search_line_result].objectArray.push(obj)
                 lines[search_line_result].objectPath.push(obj.marker.position)
-                // console.log('ObjPath diff')
-                // console.log(objectPath)
-
                 if (lines[search_line_result].objectPath.length >= 5) {
                   lines[search_line_result].objectArray.shift()
                   lines[search_line_result].objectPath.shift()
@@ -268,8 +275,8 @@
                   lat: obj['lat'],
                   lng: obj['long']
                 })
-                console.log('obj lat', obj.marker)
-                console.log('obj long', obj.marker)
+                // console.log('obj lat', obj.marker)
+                // console.log('obj long', obj.marker)
                 //console.log(obj['long'])
               }
               // console.log("closed")
@@ -285,10 +292,7 @@
           }
         });
         //remove unused markers
-        // console.log(current_msg)
-
         deleteMarkers(current_msg)
-        // console.log(current_msg)
         //update current message array
         current_msg = filtermsg
         //delete volid line
@@ -315,6 +319,7 @@
           // lng: 121.002128
         }
       });
+      // map.data.loadGeoJson('geoJSON.json');
       setMarkers(map);
     }
 

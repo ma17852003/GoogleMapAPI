@@ -47,33 +47,33 @@ if __name__ == '__main__':
     ws = websocket.WebSocket()
     ws.connect("ws://" + ip_addr + ":" + port)
 
-    while True:
-        for i in range(2):
-            for i in range(num_device):
-                num_people = np.random.randint(4)
-                num_car = np.random.randint(2)
-                num_bike = np.random.randint(3)
+    # while True:
+    for i in range(2):
+        for i in range(num_device):
+            num_people = np.random.randint(4)
+            num_car = np.random.randint(2)
+            num_bike = np.random.randint(3)
 
-                obj_arr = []
-                for j in range(num_people):
-                    dummy = generate_single('people', j, base_lat, base_lon, device_name[i])
-                    obj_arr.append(dummy)
+            obj_arr = []
+            for j in range(num_people):
+                dummy = generate_single('people', j, base_lat, base_lon, device_name[i])
+                obj_arr.append(dummy)
 
-                for j in range(num_car):
-                    dummy = generate_single('car', j, base_lat, base_lon, device_name[i])
-                    obj_arr.append(dummy)
+            for j in range(num_car):
+                dummy = generate_single('car', j, base_lat, base_lon, device_name[i])
+                obj_arr.append(dummy)
 
-                for j in range(num_bike):
-                    dummy = generate_single('bike', j, base_lat, base_lon, device_name[i])
-                    obj_arr.append(dummy)
+            for j in range(num_bike):
+                dummy = generate_single('bike', j, base_lat, base_lon, device_name[i])
+                obj_arr.append(dummy)
 
-                dummy_msg = {
-                    "device": device_name[i],
-                    "has_car": -1.0,
-                    "obj_arr": obj_arr,
-                }
-                msg_str = json.dumps(dummy_msg)
-                ws.send(msg_str)
-                print(dummy_msg)
+            dummy_msg = {
+                "device": device_name[i],
+                "has_car": -1.0,
+                "obj_arr": obj_arr,
+            }
+            msg_str = json.dumps(dummy_msg)
+            ws.send(msg_str)
+            print(dummy_msg)
 
-                time.sleep(0.5)
+            time.sleep(0.5)

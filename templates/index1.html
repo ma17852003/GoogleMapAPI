@@ -5,40 +5,32 @@
   <title>Simple Map</title>
   <meta name="viewport" content="initial-scale=1.0">
   <meta charset="utf-8">
-  <style>
-    /* Always set the map height explicitly to define the size of the div
-       * element that contains the map. */
-    #map {
-      height: 100%;
-    }
+  <!-- Latest compiled and minified Bootstrap CSS -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <!-- import jquery library -->
+  <script src="https://code.jquery.com/jquery-3.1.0.min.js"></script>
+  <link rel="shortcut icon" href="#" />
 
-    #map div {
-      transition-property: all;
-      transition-duration: 500ms;
-      transition-timing-function: ease-out;
-    }
-
-    /* Optional: Makes the sample page fill the window. */
-    html,
-    body {
-      height: 100%;
-      margin: 0;
-      padding: 0;
-    }
-  </style>
+  <script type="text/javascript" src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+  <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.6/socket.io.min.js"></script>
 </head>
 
 <body>
   <div id="map"></div>
   <div id="marker1"></div>
   <div id="marker"></div>
+  <!--<div class="wrapper">
+    <h1>Download</h1>
+    <a href="javascript:void(0)" id="dlbtn"><button>Download File</button></a>
+  </div>-->
 
 
   <script language="javascript" type="text/javascript">
-      // var wsUri ="ws://echo.websocket.org/"; 
-    var data1 = "ws://140.113.217.242:8000";
-    //  var data2 = "ws://140.113.217.242:8001";
     // var data1 = "ws://140.113.217.214:9292";
+    var data1 = "ws://127.0.0.1:8000"
+    // var data1 = "ws://192.168.0.107:8000";
+    // console.log('data1', data1);
+
     var websocket
     var websocket1
     var next_msg = []
@@ -48,49 +40,103 @@
     var map
     var poly
     var drawPolyLine
-    var drawPolyLine2
-    var drawPolyLine3
-    var objectPath1 = []
-    var objectPath2 = []
-    var objectPath3 = []
-    var drawPolyLineArr = []
-    var drawPolyLineArrcache = []
-
-    var drawPolyLineArr2 = []
-    var drawPolyLineArrcache2 = []
-
-    var drawPolyLineArr3 = []
-    var drawPolyLineArrcache3 = []
-
-    var trackdotscache
-    var objectPathCasheCollecter = []
-    var objectPathCashe1
-    var objectPathCashe2
-    var objectPathCashe3
-    var search_result
-    
-    // var trackdots1 = {"object":["car", "people", "bike"], "number":[1,2,3,4,5,6,7,8], "device":["RSU0", "RSU1"]}
-    // console.log(trackdots1)
-
-
-
-
-    // var current_markers = []
-    // var next_markers = []
+    var objectPath = []
     var contentString
+    var lines = []
+    var linesCache = []
+    var strokeColorSet = {
+      car: {
+        strokeColor: '#008800'
+      },
+      people: {
+        strokeColor: '#005888'
+      },
+      bike: {
+        strokeColor: '#880000'
+      },
+    };
+
+    var icons = {
+      car: {
+        icon: '/static/images/car.png'
+      },
+      people: {
+        icon: '/static/images/ppl.png'
+      },
+      bike: {
+        icon: '/static/images/bike.png'
+      },
+    };
+
+    var jeter_threshold = 0.0003
+
+    function newMarker(obj) {
+      var iconsss = {
+        // url: 'https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png',
+        url: icons[obj["object"]]["icon"],
+        // This marker is 25 pixels wide by 25 pixels high.
+        scaledSize: new google.maps.Size(25, 25),
+
+      };
+      // ID
+      let number1 = obj["number"];
+      let number2 = number1.toString();
+      let image = {
+        url: 'https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png'
+      };
+      let marker = new google.maps.Marker({
+        position: {
+          lat: obj['lat'],
+          lng: obj['long']
+        },
+        map: map,
+        icon: iconsss,
+        size: '120px',
+        // animation: google.maps.Animation.DROP,
+        label: {
+          text: number2,
+          fontWeight: 'bold',
+          fontSize: '8px',
+          fontFamily: '"Courier New", Courier,Monospace',
+          color: 'black'
+        },
+        title: number2,
+        // opacity: 0.5,
+        zIndex: obj['number']
+      });
+      let speed = Number.parseFloat(Math.abs(obj["speed"])).toFixed(2);
+      // let contentString = `<p>${obj["object"]},${obj["device"]},${obj["number"]},</br>${speed}</p>`
+      // let contentString = `<p>${obj["number"]}</p>`
+      let contentString = `<p>${obj["object"]},${obj["device"]},${obj["number"]},</br><image src='https://storage.cloud.google.com/nctuauto/walk1/JPEGS/Walk1000.jpg' alt='image in infowindow'>`
+      marker.infowindow = new google.maps.InfoWindow({
+        content: contentString
+      });
+      marker.addListener('click', function () {
+        marker.infowindow.open(map, marker);
+      });
 
 
+      obj.marker = marker
+      //===== end of new marker & windows
+    }
 
+
+    var markerCluster = new MarkerClusterer(map, obj.markers,
+      { 
+        imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m' 
+      });
 
     function testWebSocket() {
       /**
-      * 创建一个WebSocket对象
-      * url注意事项上面已经说过在此在提醒一下:
-      * 参数是需要连接的服务器端的地址，同http协议使用http://开头一样
-      * WebSocket协议的URL使用ws://开头
-      * 另外安全的WebSocket协议使用wss://开头。
-      */
+       * 创建一个WebSocket对象
+       * url注意事项上面已经说过在此在提醒一下:
+       * 参数是需要连接的服务器端的地址，同http协议使用http://开头一样
+       * WebSocket协议的URL使用ws://开头
+       * 另外安全的WebSocket协议使用wss://开头。
+       */
       // var data2 = JSON.parse(data1)
+      var starTime;
+      var latency
 
       websocket = new WebSocket(data1);
 
@@ -98,8 +144,10 @@
 
         console.log('open sock')
         const sendNowTime = setInterval(() => {
+          // calulate latency
+          starTime = Date.now();
           websocket.send('{"device":"client0"}')
-        }, 1000)
+        }, 200)
 
       };
 
@@ -107,322 +155,195 @@
         console.log('close socket')
 
       };
-
+      evtMSG = [];
       websocket.onmessage = function (evt) {
-
-
         next_msg = JSON.parse(evt.data);
-  
-        var icons = {
-          car: {
-            icon: '/static/images/car.png'
-          },
-          people: {
-            icon: '/static/images/ppl.png'
-          },
-          bike: {
-            icon: '/static/images/bike.png'
-          },
-          
+        evtMSG.push(evt.data);
+        latency = Date.now() - starTime;
+        // console.log('latency(ms):', latency)
 
-        };
-        // console.log(next_msg)
+        // save 20 msg each time
+        if (evtMSG.length == 20) {
+          // console.log(`data: ${evtMSG}`);
+          create(evtMSG, 'dataFusion.txt', 'text/plain');
+        }
+        // setTimeout("create(evtMSG, 'dataFusion.txt', 'text/plain')", 10000);
+
+        create = function (text, name, type) {
+          // console.log('text', text)
+          var dlbtn = document.getElementById("dlbtn");
+          var file = new Blob([text], { type: type });
+          dlbtn.href = URL.createObjectURL(file);
+          dlbtn.download = name;
+          evtMSG = [];
+        }
+
+        // console.log(evt.data)
         // remove undefined point
         var filtermsg = next_msg.filter(function (item, index, array) {
-          return item["object"] != undefined;  
-        
+          if (item["car"] && item["speed"] <= 4 | item["people"] && item["speed"] < 0) {
+            item["speed"] = 0;
+          }
+          return item["object"] != undefined;
         });
-        
-        
+
 
         // next_markers = []
         filtermsg.forEach(obj => {
-          // console.log(filtermsg)
-          // console.log(obj);
-           search_result = current_msg.findIndex((element)=>{
-            return (obj["device"]==element["device"]) && (obj["number"]==element["number"])
+          let search_result = current_msg.findIndex((element) => {
+            return (obj["device"] == element["device"]) && (obj["number"] == element["number"])
           });
-
+          console.log("ID:", obj["number"], "lat:", obj["lat"], "long:", obj["long"], "speed: ", obj["speed"]);
           // console.log(search_result)
 
           if (search_result == -1) {
-
-
-            // if it is not the same element in current msg
+            // No the same element in current msg
             // add new google map object into next msg array
-            //check speed 
-            
-            let marker = new google.maps.Marker({
-              position: { lat: obj['lat'], lng: obj['long'] },
-              map: map,
-              icon: icons[obj["object"]]["icon"],
-              title: 'object',
-              // opacity: 0.5,
-              zIndex: obj['number']
-              
-            });
-            
-            
-            // setMap(null);
+            //======   new marker & info windows
 
-            let speed = Number.parseFloat(obj["speed"]).toFixed(2);
-            let contentString = `<p>${obj["object"]},${obj["device"]},${obj["number"]},</br>${speed}</p>`
-            marker.infowindow = new google.maps.InfoWindow({
-              content: contentString
-            });
-
-              // check info windows
-            if (obj["speed"] != 0) {
-              marker.infowindow.open(map, marker);
-           
-
-            }
-            else {
-              marker.infowindow.close();
-              // trackdots.setMap(null);
-            }
-           
-
-            obj.marker = marker
-
-            // console.log(obj.marker)
-            // console.log(contentString)
-            
-          }
-          else {
-
+            newMarker(obj)
+          } else {
             // have the same element in current msg
             // pop google map markers from current array
-            // check  location
+            // Set  location if distance > threshod
+
             obj.marker = current_msg[search_result].marker
-            // console.log(obj.marker)
-            // console.log(current_msg)
-            // console.log(search_result)
-            if (obj["lat"]!=current_msg[search_result]["lat"] || obj["long"]!=current_msg[search_result]["long"]){
-              obj.marker.setPosition({lat: obj['lat'], lng: obj['long'] })
-
-            }
-          
-            if (obj["speed"] != 0) {
-              let speed = Number.parseFloat(obj["speed"]).toFixed(2);
-              let contentString = `<p>${obj["object"]},${obj["device"]},${obj["number"]},</br>${speed}</p>`
-  
-              obj.marker.infowindow = new google.maps.InfoWindow({
-                
-              content: contentString
-              
-              });
-              obj.marker.infowindow.open();
-
-              marker1 = new google.maps.Marker({
-              position: { lat: obj['lat'], lng: obj['long'] },
-              map: map,
-              icon:{path: google.maps.SymbolPath.CIRCLE,
-              fillColor: '#00F',
-              fillOpacity: 0.8,
-              strokeColor: '#00A',
-              strokeOpacity: 0.9,
-              strokeWeight: 0.6,
-              scale: 2},
-              title: obj['object'],
-              opacity: 0.0,
-              zIndex: obj['number']
-              
-              
+            let search_line_result = lines.findIndex((line) => {
+              return ((obj["device"] == line.objectArray[0]["device"]) && (obj["number"] == line.objectArray[0]["number"]))
             });
-            marker1.numbermarker = obj.marker1
-            
-            
 
-              // trackdots.push(marker1);
-              if (obj['number'] == search_result){
-                for (var l = 0; l < line.length; l++)
-                line[l].push(marker1)
-              }
-              console.log(line)
-              
-              
-              
+            // if (obj["speed"] != 0 && obj["device"] && obj["number"]) {
+            if (Math.abs(obj["speed"]) != 0) {
+              // update marker position
+              obj.marker.setPosition({
+                lat: obj['lat'],
+                lng: obj['long']
+              })
+              let speed = Number.parseFloat(Math.abs(obj["speed"])).toFixed(2);
+              // let contentString = `<p>${obj["object"]},${obj["device"]},${obj["number"]},</br>${speed}</p>`
+              // let contentString = `<p>${obj["number"]}</p>`
+              // let contentString = `"795 Park Ave, Suite 120<img src=/static/images/car.png alt='image in infowindow'>"`
+              // let contentString = `<p>${obj["object"]},${obj["device"]},${obj["number"]},</br><image src='https://storage.cloud.google.com/nctuauto/walk1/JPEGS/Walk1000.jpg' alt='image in infowindow'>`
+              // obj.marker.infowindow = new google.maps.InfoWindow({
+              //   content: contentString
+              // });
+              obj.marker.addListener('click', function () {
+                obj.marker.infowindow.open(map, obj.marker);
+              });
+              // console.log("open")
+              // obj.marker.infowindow.open();
+              // marker.infowindow.open(map, marker);
+              // console.log("closed")
+              // ====== Add Marker in Line =====
+              if (search_line_result != -1) {
+                lines[search_line_result].objectArray.push(obj)
+                lines[search_line_result].objectPath.push(obj.marker.position)
+                if (lines[search_line_result].objectPath.length >= 5) {
+                  lines[search_line_result].objectArray.shift()
+                  lines[search_line_result].objectPath.shift()
+                  lines[search_line_result].getPath().removeAt(1);
+                }
+                lines[search_line_result].setPath(lines[search_line_result].objectPath)
+              } else {
+                // points exist , not found in any line
+                // new line in lines
 
-              if (trackdots.length > 5 ){
-                trackdotscache = trackdots.shift(marker1);
-                trackdotscache.setMap(null)
-
-              }
-              // console.log(trackdotscache)
-              // console.log(trackdots)
-              // console.log(marker1.zIndex)
-
-              // objectPathCasheCollecter = new google.maps.MVCArray();
-              for (var j = 0; j < trackdots.length; j++){
-                // console.log(trackdots[j].title)
-                console.log(obj['number'])
-
-                if(trackdots[j].title == "car"  && obj['number'] == marker1.numbermarker ){
-                  // console.log("check")
-
-
-
-                  objectPath1.push(trackdots[j].position);
-
-                  if (objectPath1.length > 5 ){
-                    objectPathCashe1 = objectPath1.shift(trackdots[j].position);
-                    // objectPathCashe1.setMap(null);
-                  }
-                 
-
-                  drawPolyLine = new google.maps.Polyline({
-                  path: objectPath1,
+                let objectPath = [obj.marker.position]
+                let drawPolyLine = new google.maps.Polyline({
+                  path: objectPath,
                   geodesic: true,
-                  strokeColor: '#008800',
+                  strokeColor: strokeColorSet[obj["object"]]["strokeColor"],
                   strokeOpacity: 0.8,
                   strokeWeight: 6,
-                  title: obj['object']
+                  title: 'object'
+                });
+                drawPolyLine.objectPath = objectPath
+                drawPolyLine.objectArray = [obj]
+                drawPolyLine.setMap(map);
+                lines.push(drawPolyLine);
+              }
+              // ===== End of Add marker in Line =====
+            } else {
+              // speed == 0
+              let diff_lat = Math.abs(obj["lat"] - current_msg[search_result]["lat"])
+              let diff_long = Math.abs(obj["long"] - current_msg[search_result]["long"])
+              // console.log(diff_lat)
+              // console.log(diff_long)
+              // console.log('-----')
+              if (diff_lat > jeter_threshold || diff_long > jeter_threshold) {
+                obj.marker.setPosition({
+                  lat: obj['lat'],
+                  lng: obj['long']
+                })
+                // console.log('obj lat', obj.marker)
+                // console.log('obj long', obj.marker)
+                //console.log(obj['long'])
+              }
+              // console.log("closed")
+              //obj.marker.infowindow.close();
 
-                  });
-                  
-                  // console.log(drawPolyLineArr)
-                  // console.log(drawPolyLineArrcache)
-                  drawPolyLine.setMap(map);
-                  
 
-                    
-                    drawPolyLineArr.push(drawPolyLine);
-                    if (drawPolyLineArr.length > 5 ){
-                      drawPolyLineArrcache = drawPolyLineArr.shift(drawPolyLine);
-                      drawPolyLineArrcache.setMap(null)
-
-                    }
-                    
-
-
-
-                  }else if (trackdots[j].title == "people" && trackdots[j].zIndex == marker1.zIndex){
-                    objectPathCashe2 = objectPath2.push(trackdots[j].position);
-
-                    drawPolyLine2 = new google.maps.Polyline({
-                    path: objectPath2,
-                    geodesic: true,
-                    strokeColor: '#005888',
-                    strokeOpacity: 0.8,
-                    strokeWeight: 6,
-                    title: obj['object']
-
-                    });
-                    drawPolyLine2.setMap(map);
-                  
-
-                    
-                    drawPolyLineArr.push(drawPolyLine2);
-                    if (drawPolyLineArr.length > 5 ){
-                      drawPolyLineArrcache2 = drawPolyLineArr2.shift(drawPolyLine2);
-                      drawPolyLineArrcache2.setMap(null)
-
-                      console.log(drawPolyLineArr2)
-                      console.log(drawPolyLineArrcache2)
-
-                    }
-
-                  }else if (trackdots[j].title == "bike" && trackdots[j].zIndex == marker1.zIndex){
-                    objectPathCashe3 = objectPath3.push(trackdots[j].position);
-
-                    drawPolyLine3 = new google.maps.Polyline({
-                    path: objectPath3,
-                    geodesic: true,
-                    strokeColor: '#880000',
-                    strokeOpacity: 0.8,
-                    strokeWeight: 6,
-                    title: obj['object']
-
-                    });
-                    drawPolyLine3.setMap(map);
-                  
-
-                    
-                  drawPolyLineArr3.push(drawPolyLine3);
-                  if (drawPolyLineArr3.length > 5 ){
-                    drawPolyLineArrcache3 = drawPolyLineArr3.shift(drawPolyLine3);
-                    drawPolyLineArrcache3.setMap(null)
-
-                    console.log(drawPolyLineArr3)
-                    console.log(drawPolyLineArrcache3)
-
-                  }
-
-                  }
-                  
-               }
-        
-
-            
-
+              if (search_line_result != -1) {
+                lines[search_line_result].setMap(null)
+              }
             }
-            else{
-              obj.marker.infowindow.close();
-
-            }
-
-            current_msg.splice(search_result,1)
+            // console.log(current_msg)
+            current_msg.splice(search_result, 1)
           }
-          
-
         });
-        
+        //remove unused markers
         deleteMarkers(current_msg)
-        // console.log(current_msg)
-
-
         //update current message array
         current_msg = filtermsg
-        // current_markers = next_markers
-        
-      };
-
-
+        //delete volid line
+      }
     }
+    var start_execution = Math.floor(new Date().getTime());
+    //In response of the call initialize end time and call function to compute latency
+    var end_execution = Math.floor(new Date().getTime());
 
-
-
-
-
+    // function call to generate latency
     function initMap() {
-
       map = new google.maps.Map(document.getElementById('map'), {
-        zoom: 21,
-        // center: {lat: 12.646011458548333, lng: 11.901676997427126}
-        center: { lat: 24.7870344, lng: 121.0003 }
+        // zoom: 21,
+        zoom: 19,
+        // zoom: 20,
+
+        // center: { lat: 24.7870344, lng: 121.0003 }
+        // center: { lat: 24.7870344, lng: 121.0003 }
+        // 24.787499, 120.997105
+        center: {
+          lat: 24.78743200,
+          lng: 120.99711504
+          // lat: 24.786704,
+          // lng: 121.002128
+        }
       });
-
+      // map.data.loadGeoJson('geoJSON.json');
       setMarkers(map);
-
     }
 
 
     function deleteMarkers(msg) {
       msg.forEach(function (e) {
+        let search_delete_line = lines.findIndex(line => {
+          // console.log(e["device"])
+          // console.log(line.objectArray[line.objectArray.length-1]["device"])
+          return ((e["device"] == line.objectArray[line.objectArray.length - 1]["device"]) && (e["number"] ==
+            line.objectArray[line.objectArray.length - 1]["number"]))
+        })
+        if (search_delete_line != -1) {
+          lines[search_delete_line].setMap(null);
+        }
         e.marker.setMap(null);
       });
-
     }
-
-
-
 
     function setMarkers(map) {
-
-      console.log('test socket')
-
+      // console.log('test socket')
       testWebSocket()
-
     }
-
-
-
-
   </script>
-
-
-
 
   <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCHO3eslXasBmWiNw335Al3W50vIGyIClU&callback=initMap"
     async defer></script>

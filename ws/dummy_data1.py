@@ -6,8 +6,8 @@ import json
 import numpy as np
 
 
-# ip_addr = '127.0.0.1'
-ip_addr = '192.168.0.111'
+ip_addr = '127.0.0.1'
+# ip_addr = '192.168.0.111'
 port = '8000'
 
 num_device = 3

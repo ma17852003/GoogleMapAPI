@@ -27,6 +27,7 @@
 
   <script language="javascript" type="text/javascript">
     // var data1 = "ws://140.113.217.214:9292";
+    // var data1 = "ws://140.113.217.244:9999";
     var data1 = "ws://127.0.0.1:8000"
     // var data1 = "ws://192.168.0.107:8000";
     // console.log('data1', data1);
@@ -64,7 +65,7 @@
         icon: '/static/images/ppl.png'
       },
       bike: {
-        icon: '/static/images/bike.png'
+        icon: '/static/images/bike1.png'
       },
     };
 
@@ -81,9 +82,9 @@
       // ID
       let number1 = obj["number"];
       let number2 = number1.toString();
-      let image = {
-        url: 'https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png'
-      };
+      // let image = {
+      //   url: 'https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png'
+      // };
       let marker = new google.maps.Marker({
         position: {
           lat: obj['lat'],
@@ -138,18 +139,21 @@
       var starTime;
       var latency
 
-      websocket = new WebSocket(data1);
+      const sendNowTime = setInterval(() => {
+        websocket = new WebSocket(data1);
 
-      websocket.onopen = function (evt) {
+        websocket.onopen = function (evt) {
 
-        console.log('open sock')
-        const sendNowTime = setInterval(() => {
+          console.log('open sock')
+        // websocket.send('{"device":"client0"}')
+        
           // calulate latency
-          starTime = Date.now();
+          // starTime = Date.now();
           websocket.send('{"device":"client0"}')
-        }, 200)
+          
+        }
 
-      };
+      
 
       websocket.onclose = function (evt) {
         console.log('close socket')
@@ -158,6 +162,7 @@
       evtMSG = [];
       websocket.onmessage = function (evt) {
         next_msg = JSON.parse(evt.data);
+        console.log(next_msg);
         evtMSG.push(evt.data);
         latency = Date.now() - starTime;
         // console.log('latency(ms):', latency)
@@ -296,8 +301,12 @@
         //update current message array
         current_msg = filtermsg
         //delete volid line
+        websocket.close()
       }
+      
+    }, 100);
     }
+  
     var start_execution = Math.floor(new Date().getTime());
     //In response of the call initialize end time and call function to compute latency
     var end_execution = Math.floor(new Date().getTime());
@@ -313,10 +322,10 @@
         // center: { lat: 24.7870344, lng: 121.0003 }
         // 24.787499, 120.997105
         center: {
-          lat: 24.78743200,
-          lng: 120.99711504
-          // lat: 24.786704,
-          // lng: 121.002128
+          // lat: 24.78743200,
+          // lng: 120.99711504
+          lat: 24.786704,
+          lng: 121.002128
         }
       });
       // map.data.loadGeoJson('geoJSON.json');

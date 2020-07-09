@@ -8,6 +8,8 @@ import numpy as np
 
 ip_addr = '127.0.0.1'
 # ip_addr = '192.168.0.111'
+# ip_addr = '140.113.217.244' 
+# ip_addr = '192.168.43.117'
 port = '8000'
 
 num_device = 3
@@ -54,12 +56,14 @@ if __name__ == '__main__':
                 num_people = np.random.randint(4)
                 num_car = np.random.randint(2)
                 num_bike = np.random.randint(3)
+                # print(num_people)
 
                 obj_arr = []
                 for j in range(num_people):
                     dummy = generate_single(
                         'people', j, base_lat, base_lon, device_name[i])
                     obj_arr.append(dummy)
+                    print(obj_arr)
 
                 for j in range(num_car):
                     dummy = generate_single(
@@ -78,6 +82,6 @@ if __name__ == '__main__':
                 }
                 msg_str = json.dumps(dummy_msg)
                 ws.send(msg_str)
-                print(dummy_msg)
+                # print(dummy_msg)
 
                 time.sleep(0.5)

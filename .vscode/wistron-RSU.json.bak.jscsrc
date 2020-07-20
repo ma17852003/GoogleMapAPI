@@ -1,0 +1,21 @@
+{
+    "name": "Deep Server",
+    "host": "140.110.141.115",
+    "protocol": "sftp",
+    "port": 9025,
+    "username": "nctu",
+    "password": "NCTU@20200604",
+    "remotePath": "/home/nctu",
+    "uploadOnSave": true,
+    "syncMode": "update",
+    "watcher": {
+        "files": false,
+        "autoUpload": true,
+        "autoDelete": true
+    },
+    "ignore": [
+        "**/.vscode/**",
+        "**/.git/**",
+        "**/.DS_Store"
+    ]
+}

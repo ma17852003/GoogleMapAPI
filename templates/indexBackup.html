@@ -8,29 +8,21 @@
   <!-- Latest compiled and minified Bootstrap CSS -->
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
   <!-- import jquery library -->
-  <script src="https://code.jquery.com/jquery-3.1.0.min.js"></script>
+  <script src="https://code.jquery.com/jquery-3.1.0.min.js" async></script>
   <link rel="shortcut icon" href="#" />
 
-  <script type="text/javascript" src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
-  <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.6/socket.io.min.js"></script>
+  <script type="text/javascript" src="https://code.jquery.com/jquery-3.3.1.min.js" async></script>
+  <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.6/socket.io.min.js" async></script>
 </head>
 
 <body>
   <div id="map"></div>
   <div id="marker1"></div>
   <div id="marker"></div>
-  <!--<div class="wrapper">
-    <h1>Download</h1>
-    <a href="javascript:void(0)" id="dlbtn"><button>Download File</button></a>
-  </div>-->
 
 
-  <script language="javascript" type="text/javascript">
-    // var data1 = "ws://140.113.217.214:9292";
-    // var data1 = "ws://140.113.217.244:9999";
-    var data1 = "ws://127.0.0.1:8000"
-    // var data1 = "ws://192.168.0.107:8000";
-    // console.log('data1', data1);
+  <script language="javascript" type="text/javascript" async>
+    var data1 = "ws://140.110.141.115:9023"
 
     var websocket
     var websocket1
@@ -73,7 +65,6 @@
 
     function newMarker(obj) {
       var iconsss = {
-        // url: 'https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png',
         url: icons[obj["object"]]["icon"],
         // This marker is 25 pixels wide by 25 pixels high.
         scaledSize: new google.maps.Size(25, 25),
@@ -106,9 +97,7 @@
         zIndex: obj['number']
       });
       let speed = Number.parseFloat(Math.abs(obj["speed"])).toFixed(2);
-      // let contentString = `<p>${obj["object"]},${obj["device"]},${obj["number"]},</br>${speed}</p>`
-      // let contentString = `<p>${obj["number"]}</p>`
-      let contentString = `<p>${obj["object"]},${obj["device"]},${obj["number"]},</br><image src='https://storage.cloud.google.com/nctuauto/walk1/JPEGS/Walk1000.jpg' alt='image in infowindow'>`
+      let contentString = `<p>${obj["object"]},${obj["device"]},${obj["number"]}` //,</br><image src='https://storage.cloud.google.com/nctuauto/walk1/JPEGS/Walk1000.jpg' alt='image in infowindow'>`
       marker.infowindow = new google.maps.InfoWindow({
         content: contentString
       });
@@ -121,12 +110,6 @@
       //===== end of new marker & windows
     }
 
-
-    // var markerCluster = new MarkerClusterer(map, obj.markers,
-    //   { 
-    //     imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m' 
-    //   });
-
     function testWebSocket() {
       /**
        * 创建一个WebSocket对象
@@ -135,25 +118,24 @@
        * WebSocket协议的URL使用ws://开头
        * 另外安全的WebSocket协议使用wss://开头。
        */
-      // var data2 = JSON.parse(data1)
-      var starTime;
+      var startTime;
       var latency
 
-      const sendNowTime = setInterval(() => {
-        websocket = new WebSocket(data1);
+      websocket = new WebSocket(data1);
 
-        websocket.onopen = function (evt) {
+      websocket.onopen = function (evt) {
 
-          console.log('open sock')
-        // websocket.send('{"device":"client0"}')
-        
-          // calulate latency
-          // starTime = Date.now();
-          websocket.send('{"device":"client0"}')
-          
-        }
+        console.log('open sock')
 
-      
+        // const sendNowTime = setInterval(() => {
+        //   // calulate latency
+
+        websocket.send('{"device":"client0"}')
+        //   startTime = Date.now();
+        // }, 100);
+
+
+      }
 
       websocket.onclose = function (evt) {
         console.log('close socket')
@@ -163,150 +145,113 @@
       websocket.onmessage = function (evt) {
         next_msg = JSON.parse(evt.data);
         console.log(next_msg);
-        evtMSG.push(evt.data);
-        latency = Date.now() - starTime;
-        // console.log('latency(ms):', latency)
 
-        // save 20 msg each time
-        if (evtMSG.length == 20) {
-          // console.log(`data: ${evtMSG}`);
-          create(evtMSG, 'dataFusion.txt', 'text/plain');
-        }
-        // setTimeout("create(evtMSG, 'dataFusion.txt', 'text/plain')", 10000);
-
-        create = function (text, name, type) {
-          // console.log('text', text)
-          var dlbtn = document.getElementById("dlbtn");
-          var file = new Blob([text], { type: type });
-          dlbtn.href = URL.createObjectURL(file);
-          dlbtn.download = name;
-          evtMSG = [];
-        }
-
-        // console.log(evt.data)
-        // remove undefined point
-        var filtermsg = next_msg.filter(function (item, index, array) {
-          if (item["car"] && item["speed"] <= 4 | item["people"] && item["speed"] < 0) {
-            item["speed"] = 0;
-          }
-          return item["object"] != undefined;
-        });
-
-
-        // next_markers = []
-        filtermsg.forEach(obj => {
-          let search_result = current_msg.findIndex((element) => {
-            return (obj["device"] == element["device"]) && (obj["number"] == element["number"])
+        // latency = Date.now() - startTime;
+        // console.log(latency)
+          // remove undefined point
+          var filtermsg = next_msg.filter(function (item, index, array) {
+            if (item["car"] && item["speed"] <= 4 | item["people"] && item["speed"] < 0) {
+              item["speed"] = 0;
+            }
+            return item["object"] != undefined;
           });
-          console.log("ID:", obj["number"], "lat:", obj["lat"], "long:", obj["long"], "speed: ", obj["speed"]);
-          // console.log(search_result)
 
-          if (search_result == -1) {
-            // No the same element in current msg
-            // add new google map object into next msg array
-            //======   new marker & info windows
 
-            newMarker(obj)
-          } else {
-            // have the same element in current msg
-            // pop google map markers from current array
-            // Set  location if distance > threshod
-
-            obj.marker = current_msg[search_result].marker
-            let search_line_result = lines.findIndex((line) => {
-              return ((obj["device"] == line.objectArray[0]["device"]) && (obj["number"] == line.objectArray[0]["number"]))
+          // next_markers = []
+          filtermsg.forEach(obj => {
+            let search_result = current_msg.findIndex((element) => {
+              return (obj["device"] == element["device"]) && (obj["number"] == element["number"])
             });
 
-            // if (obj["speed"] != 0 && obj["device"] && obj["number"]) {
-            if (Math.abs(obj["speed"]) != 0) {
-              // update marker position
-              obj.marker.setPosition({
-                lat: obj['lat'],
-                lng: obj['long']
-              })
-              let speed = Number.parseFloat(Math.abs(obj["speed"])).toFixed(2);
-              // let contentString = `<p>${obj["object"]},${obj["device"]},${obj["number"]},</br>${speed}</p>`
-              // let contentString = `<p>${obj["number"]}</p>`
-              // let contentString = `"795 Park Ave, Suite 120<img src=/static/images/car.png alt='image in infowindow'>"`
-              // let contentString = `<p>${obj["object"]},${obj["device"]},${obj["number"]},</br><image src='https://storage.cloud.google.com/nctuauto/walk1/JPEGS/Walk1000.jpg' alt='image in infowindow'>`
-              // obj.marker.infowindow = new google.maps.InfoWindow({
-              //   content: contentString
-              // });
-              obj.marker.addListener('click', function () {
-                obj.marker.infowindow.open(map, obj.marker);
-              });
-              // console.log("open")
-              // obj.marker.infowindow.open();
-              // marker.infowindow.open(map, marker);
-              // console.log("closed")
-              // ====== Add Marker in Line =====
-              if (search_line_result != -1) {
-                lines[search_line_result].objectArray.push(obj)
-                lines[search_line_result].objectPath.push(obj.marker.position)
-                if (lines[search_line_result].objectPath.length >= 5) {
-                  lines[search_line_result].objectArray.shift()
-                  lines[search_line_result].objectPath.shift()
-                  lines[search_line_result].getPath().removeAt(1);
-                }
-                lines[search_line_result].setPath(lines[search_line_result].objectPath)
-              } else {
-                // points exist , not found in any line
-                // new line in lines
+            if (search_result == -1) {
+              // No the same element in current msg
+              // add new google map object into next msg array
+              //======   new marker & info windows
 
-                let objectPath = [obj.marker.position]
-                let drawPolyLine = new google.maps.Polyline({
-                  path: objectPath,
-                  geodesic: true,
-                  strokeColor: strokeColorSet[obj["object"]]["strokeColor"],
-                  strokeOpacity: 0.8,
-                  strokeWeight: 6,
-                  title: 'object'
-                });
-                drawPolyLine.objectPath = objectPath
-                drawPolyLine.objectArray = [obj]
-                drawPolyLine.setMap(map);
-                lines.push(drawPolyLine);
-              }
-              // ===== End of Add marker in Line =====
+              newMarker(obj)
             } else {
-              // speed == 0
-              let diff_lat = Math.abs(obj["lat"] - current_msg[search_result]["lat"])
-              let diff_long = Math.abs(obj["long"] - current_msg[search_result]["long"])
-              // console.log(diff_lat)
-              // console.log(diff_long)
-              // console.log('-----')
-              if (diff_lat > jeter_threshold || diff_long > jeter_threshold) {
+              // have the same element in current msg
+              // pop google map markers from current array
+              // Set  location if distance > threshod
+
+              obj.marker = current_msg[search_result].marker
+              let search_line_result = lines.findIndex((line) => {
+                return ((obj["device"] == line.objectArray[0]["device"]) && (obj["number"] == line.objectArray[0]["number"]))
+              });
+
+              if (Math.abs(obj["speed"]) != 0) {
+                // update marker position
                 obj.marker.setPosition({
                   lat: obj['lat'],
                   lng: obj['long']
                 })
-                // console.log('obj lat', obj.marker)
-                // console.log('obj long', obj.marker)
-                //console.log(obj['long'])
-              }
-              // console.log("closed")
-              //obj.marker.infowindow.close();
+                let speed = Number.parseFloat(Math.abs(obj["speed"])).toFixed(2);
+                obj.marker.addListener('click', function () {
+                  obj.marker.infowindow.open(map, obj.marker);
+                });
+   
+                // ====== Add Marker in Line =====
+                if (search_line_result != -1) {
+                  lines[search_line_result].objectArray.push(obj)
+                  lines[search_line_result].objectPath.push(obj.marker.position)
+                  if (lines[search_line_result].objectPath.length >= 5) {
+                    lines[search_line_result].objectArray.shift()
+                    lines[search_line_result].objectPath.shift()
+                    lines[search_line_result].getPath().removeAt(1);
+                  }
+                  lines[search_line_result].setPath(lines[search_line_result].objectPath)
+                } else {
+                  // points exist , not found in any line
+                  // new line in lines
 
-
-              if (search_line_result != -1) {
-                lines[search_line_result].setMap(null)
+                  let objectPath = [obj.marker.position]
+                  let drawPolyLine = new google.maps.Polyline({
+                    path: objectPath,
+                    geodesic: true,
+                    strokeColor: strokeColorSet[obj["object"]]["strokeColor"],
+                    strokeOpacity: 0.8,
+                    strokeWeight: 6,
+                    title: 'object'
+                  });
+                  drawPolyLine.objectPath = objectPath
+                  drawPolyLine.objectArray = [obj]
+                  drawPolyLine.setMap(map);
+                  lines.push(drawPolyLine);
+                }
+                // ===== End of Add marker in Line =====
+              } else {
+                // speed == 0
+                let diff_lat = Math.abs(obj["lat"] - current_msg[search_result]["lat"])
+                let diff_long = Math.abs(obj["long"] - current_msg[search_result]["long"])
+                // console.log(diff_lat)
+                // console.log(diff_long)
+                // console.log('-----')
+                if (diff_lat > jeter_threshold || diff_long > jeter_threshold) {
+                  obj.marker.setPosition({
+                    lat: obj['lat'],
+                    lng: obj['long']
+                  })
+                  // console.log('obj lat', obj.marker)
+                  // console.log('obj long', obj.marker)
+                  //console.log(obj['long'])
+                }
+                if (search_line_result != -1) {
+                  lines[search_line_result].setMap(null)
+                }
               }
+
+              current_msg.splice(search_result, 1)
             }
-            // console.log(current_msg)
-            current_msg.splice(search_result, 1)
-          }
-        });
-        //remove unused markers
-        deleteMarkers(current_msg)
-        //update current message array
-        current_msg = filtermsg
-        //delete volid line
-        websocket.close()
+          });
+          //remove unused markers
+          deleteMarkers(current_msg)
+          //update current message array
+          current_msg = filtermsg
+          websocket.send('{"device":"client0"}')
+
       }
-      
-    }, 100);
     }
-  
+
     var start_execution = Math.floor(new Date().getTime());
     //In response of the call initialize end time and call function to compute latency
     var end_execution = Math.floor(new Date().getTime());
@@ -314,21 +259,14 @@
     // function call to generate latency
     function initMap() {
       map = new google.maps.Map(document.getElementById('map'), {
-        // zoom: 21,
         zoom: 19,
-        // zoom: 20,
-
-        // center: { lat: 24.7870344, lng: 121.0003 }
-        // center: { lat: 24.7870344, lng: 121.0003 }
-        // 24.787499, 120.997105
+ 
         center: {
-          // lat: 24.78743200,
-          // lng: 120.99711504
-          lat: 24.786704,
-          lng: 121.002128
+          lat: 24.178101,
+          lng: 120.655347
+          
         }
       });
-      // map.data.loadGeoJson('geoJSON.json');
       setMarkers(map);
     }
 
@@ -336,8 +274,7 @@
     function deleteMarkers(msg) {
       msg.forEach(function (e) {
         let search_delete_line = lines.findIndex(line => {
-          // console.log(e["device"])
-          // console.log(line.objectArray[line.objectArray.length-1]["device"])
+
           return ((e["device"] == line.objectArray[line.objectArray.length - 1]["device"]) && (e["number"] ==
             line.objectArray[line.objectArray.length - 1]["number"]))
         })
@@ -349,13 +286,13 @@
     }
 
     function setMarkers(map) {
-      // console.log('test socket')
+
       testWebSocket()
     }
   </script>
 
   <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCHO3eslXasBmWiNw335Al3W50vIGyIClU&callback=initMap"
-    async defer></script>
+    defer></script>
 </body>
 
 </html>

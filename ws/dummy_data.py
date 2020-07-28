@@ -6,20 +6,34 @@ import json
 import numpy as np
 
 
-ip_addr = '127.0.0.1'
+# ip_addr = '127.0.0.1'
+ip_addr = '140.110.141.115'
 # ip_addr = '192.168.0.111'
 # ip_addr = '140.113.217.244' 
 # ip_addr = '192.168.43.117'
-port = '8000'
+port = '9023'
 
 num_device = 3
 device_name = ['RSU0', 'RSU1', 'RSU2']
 
-base_lat, base_lon = 24.786280, 121.001905
 
-end_lat, end_lon = 24.786853, 121.002178
+# base_lat, base_lon = 24.786280, 121.001905
+base_lat, base_lon = 24.178101, 120.655347
+# end_lat, end_lon = 24.786853, 121.002178
+end_lat, end_lon = 24.178668, 120.655620
 diff_lat, diff_lon = np.abs(end_lat-base_lat), np.abs(end_lon-base_lon)
 
+
+class NpEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, np.integer):
+            return int(obj)
+        elif isinstance(obj, np.floating):
+            return float(obj)
+        elif isinstance(obj, np.ndarray):
+            return obj.tolist()
+        else:
+            return super(NpEncoder, self).default(obj)
 
 def generate_single(obj, id, base_lat, base_lon, device):
     """ data form
@@ -80,7 +94,7 @@ if __name__ == '__main__':
                     "has_car": -1.0,
                     "obj_arr": obj_arr,
                 }
-                msg_str = json.dumps(dummy_msg)
+                msg_str = json.dumps(dummy_msg, cls=NpEncoder)
                 ws.send(msg_str)
                 # print(dummy_msg)
 

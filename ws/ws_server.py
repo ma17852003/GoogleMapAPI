@@ -4,7 +4,7 @@ import json
 import numpy as np
 
 
-port = 8000
+port = 9023
 
 class SimpleEcho(WebSocket):
 
